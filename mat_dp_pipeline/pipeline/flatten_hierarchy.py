@@ -5,9 +5,35 @@ from typing import Iterator
 
 import pandas as pd
 
-from mat_dp_pipeline.common import validate
+from mat_dp_pipeline.common import Tree, create_path_tree, validate
 from mat_dp_pipeline.pipeline.common import SparseYearsInput
 from mat_dp_pipeline.sdf import StandardDataFormat, Year
+
+
+def stringify_tree(tree: Tree, collapse_limit: int | None = None) -> list[str]:
+    def add_node_to_result(node: Tree, result: list[str], prefix: str):
+        """
+        Adds the specified node to the result list, via a depth first search.
+        """
+        if node is None:
+            return None
+
+        for i, (k, v) in enumerate(node.items()):
+            if i == 0:
+                new_prefix = f"{prefix} -> {k}"
+            else:
+                new_prefix = f"{len(prefix)*' '} -> {k}"
+            if v is None:
+                result.append(new_prefix)
+            elif len(v) > (collapse_limit or float("inf")):
+                result.append(new_prefix + f" -> ({len(v)} items)")
+            else:
+                add_node_to_result(v, result, new_prefix)
+
+    result = []
+    add_node_to_result(tree, result, "")
+
+    return result
 
 
 def overlay_in_order(
@@ -77,8 +103,6 @@ def flatten_hierarchy(
                 overlaid.targets.index
             )
 
-            # TODO: add a parameter controlling whether validation yields a warning or exception or is ignored
-            # Maybe group the errors and show at the end, otherwise there's a LOT of errors
             mismatched_resources = overlaid.validate()
             yield label, overlaid, mismatched_resources
 
@@ -98,7 +122,10 @@ def flatten_hierarchy(
         if mismatched_resources:
             all_mismatched_resources[tuple(sorted(mismatched_resources))].append(label)
 
-    # TODO: better logging
-    logging.warning(f"Mismatched resources: {all_mismatched_resources}!")
+    for resources, paths in all_mismatched_resources.items():
+        tree_lines = "\n        ".join(
+            stringify_tree(create_path_tree(paths), collapse_limit=7)
+        )
+        logging.warning(f"Mismatched resources: {resources}!\n        {tree_lines}")
 
     return ret
