@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
+from typing import cast
 
 import pandas as pd
 
@@ -60,9 +61,10 @@ class SparseYearsInput:
 
         # move years to columns, reindex techs, bring the years back
         self.intensities = (
-            self.intensities.unstack(level=0)  # type: ignore
-            .reindex(targets_techs)
-            .stack()
+            cast(
+                pd.DataFrame,
+                self.intensities.unstack(level=0).reindex(targets_techs).stack(),
+            )
             .reorder_levels(["Year", "Category", "Specific"])
             .sort_index()
         )
