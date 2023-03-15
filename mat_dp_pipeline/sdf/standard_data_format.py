@@ -8,7 +8,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from mat_dp_pipeline.common import FileOrPath, validate
+from mat_dp_pipeline.common import FileOrPath
 
 Year = int
 
@@ -16,14 +16,12 @@ Year = int
 def validate_tech_units(tech_metadata: pd.DataFrame) -> None:
     if tech_metadata.empty:
         return
-    validate(
-        (tech_metadata.loc[:, "Material Unit"].groupby(level=0).nunique() == 1).all(),
-        "There are tech categories with non-unique Material Unit!",
-    )
-    validate(
-        (tech_metadata.loc[:, "Production Unit"].groupby(level=0).nunique() == 1).all(),
-        "There are tech categories with non-unique Production Unit!",
-    )
+
+    if (tech_metadata.loc[:, "Material Unit"].groupby(level=0).nunique() > 1).any():
+        raise ValueError("There are tech categories with non-unique Material Unit!")
+
+    if (tech_metadata.loc[:, "Production Unit"].groupby(level=0).nunique() > 1).any():
+        raise ValueError("There are tech categories with non-unique Production Unit!")
 
 
 class InputReader(ABC):
@@ -116,23 +114,26 @@ class StandardDataFormat:
             base_keys = set(base.index.unique())
 
             for year, df in yearly.items():
-                validate(
-                    set(df.index.unique()) <= base_keys,
-                    f"{self.name}: Yearly file ({year}) introduces new items!",
-                )
+                if not set(df.index.unique()) <= base_keys:
+                    raise ValueError(
+                        f"{self.name}: Yearly file ({year}) introduces new items!"
+                    )
 
-        validate(
-            (self.targets is not None) != (len(self.children) > 0),
-            f"{self.name}: SDF must either have children in the hierarchy or defined targets (leaf level)",
-        )
-        validate(
-            (self.intensities is not None) or (self.intensities_yearly is None),
-            f"{self.name}: No base intensities, while yearly files provided!",
-        )
-        validate(
-            (self.indicators is not None) or (self.indicators_yearly is None),
-            f"{self.name}: No base indicators, while yearly files provided!",
-        )
+        if (self.targets is not None) == (len(self.children) > 0):
+            raise ValueError(
+                f"{self.name}: SDF must either have children in the hierarchy or defined targets (leaf level)"
+            )
+
+        if self.intensities is None and self.intensities_yearly is not None:
+            raise ValueError(
+                f"{self.name}: No base intensities, while yearly files provided!"
+            )
+
+        if self.indicators is None and self.indicators_yearly is not None:
+            raise ValueError(
+                f"{self.name}: No base indicators, while yearly files provided!"
+            )
+
         validate_yearly_keys(self.intensities, self.intensities_yearly)
         validate_yearly_keys(self.indicators, self.indicators_yearly)
 

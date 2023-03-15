@@ -52,14 +52,6 @@ class PipelineOutput:
         self._length = len(data)
 
     def emissions(self, key: Path | str, indicator: str) -> pd.DataFrame:
-        """TODO:
-
-        Args:
-            indicator (str): _description_
-
-        Returns:
-            pd.DataFrame: _description_
-        """
         data = self[Path(key)]
         return pd.concat(
             {k: v.emissions.loc[indicator, :] for k, v in data.items()}, names=["Year"]

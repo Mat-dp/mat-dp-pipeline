@@ -4,7 +4,6 @@ from pathlib import Path
 import pandas as pd
 
 import mat_dp_pipeline.sdf.standard_data_format as sdf
-from mat_dp_pipeline.common import validate
 
 
 @dataclass(eq=False, order=False)
@@ -56,10 +55,8 @@ class SparseYearsInput:
         intensities_techs = self.intensities.index.droplevel(0).unique()
         targets_techs = self.targets.index
 
-        validate(
-            set(targets_techs) <= set(intensities_techs),
-            "Target's techs must be a subset of intensities' techs!",
-        )
+        if not set(targets_techs) <= set(intensities_techs):
+            raise ValueError("Target's techs must be a subset of intensities' techs!")
 
         # move years to columns, reindex techs, bring the years back
         self.intensities = (
