@@ -64,7 +64,7 @@ def overlay_in_order(
 def flatten_hierarchy(
     root_sdf: StandardDataFormat,
 ) -> list[tuple[Path, SparseYearsInput]]:
-    def add_sparse_years_to_sdf(
+    def dfs(
         sdf: StandardDataFormat, sparse_years: SparseYearsInput, label: Path
     ) -> Iterator[tuple[Path, SparseYearsInput, set[str]]]:
         if not (
@@ -94,7 +94,7 @@ def flatten_hierarchy(
 
         # Go down in the hierarchy
         for name, directory in sdf.children.items():
-            yield from add_sparse_years_to_sdf(directory, overlaid, label / name)
+            yield from dfs(directory, overlaid, label / name)
 
         # Yield only leaves
         if not sdf.children:
@@ -117,7 +117,7 @@ def flatten_hierarchy(
 
     flattened = []
     all_mismatched_resources: dict[tuple[str, ...], list[Path]] = defaultdict(list)
-    for label, sparse_years, mismatched_resources in add_sparse_years_to_sdf(
+    for label, sparse_years, mismatched_resources in dfs(
         root_sdf, initial, Path(root_sdf.name)
     ):
         flattened.append((label, sparse_years))
