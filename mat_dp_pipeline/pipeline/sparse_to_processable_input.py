@@ -1,6 +1,6 @@
 import itertools
 from pathlib import Path
-from typing import Iterator
+from typing import Iterator, cast
 
 import numpy as np
 import pandas as pd
@@ -19,7 +19,9 @@ def _interpolate_intensities(
     ).sort_values()
 
     df = df.sort_index(axis=0).sort_index(axis=1).reindex(idx)
-    interpolated_array = df.unstack((1, 2)).interpolate(method="index").values.flatten()  # type: ignore
+    interpolated_array = cast(
+        pd.DataFrame, df.unstack((1, 2)).interpolate(method="index")
+    ).values.flatten()
 
     def get_permutation():
         """Creates a permutation of indexes for conversion of `interpolated_array` to
@@ -58,7 +60,9 @@ def _interpolate_indicators(
     idx = pd.MultiIndex.from_product([years, resources]).sort_values()
 
     df = df.sort_index(axis=0).sort_index(axis=1).reindex(idx)
-    interpolated_array = df.unstack().interpolate(method="index").values.flatten()  # type: ignore
+    interpolated_array = cast(
+        pd.DataFrame, df.unstack().interpolate(method="index")
+    ).values.flatten()
 
     def get_permutation():
         """Creates a permutation of indexes for conversion of `interpolated_array` to
