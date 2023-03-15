@@ -5,7 +5,7 @@ from typing import Iterator
 
 import pandas as pd
 
-from mat_dp_pipeline.common import Tree, create_path_tree, validate
+from mat_dp_pipeline.common import Tree, create_path_tree
 from mat_dp_pipeline.pipeline.common import SparseYearsInput
 from mat_dp_pipeline.sdf import StandardDataFormat, Year
 
@@ -64,40 +64,42 @@ def overlay_in_order(
 def flatten_hierarchy(
     root_sdf: StandardDataFormat,
 ) -> list[tuple[Path, SparseYearsInput]]:
-    def dfs(
-        root: StandardDataFormat, inpt: SparseYearsInput, label: Path
+    def add_sparse_years_to_sdf(
+        sdf: StandardDataFormat, sparse_years: SparseYearsInput, label: Path
     ) -> Iterator[tuple[Path, SparseYearsInput, set[str]]]:
-        validate(
-            root.indicators.empty
-            or inpt.indicators.empty
-            or list(inpt.indicators.columns) == list(root.indicators.columns),
-            f"{label}: Indicators' names on each level have to be the same!",
-        )
+        if not (
+            sdf.indicators.empty
+            or sparse_years.indicators.empty
+            or list(sparse_years.indicators.columns) == list(sdf.indicators.columns)
+        ):
+            raise ValueError(
+                f"{label}: Indicators' names on each level have to be the same!"
+            )
 
-        overlaid = inpt.copy()
+        overlaid = sparse_years.copy()
         overlaid.intensities = overlay_in_order(
-            overlaid.intensities, root.intensities, root.intensities_yearly
+            overlaid.intensities, sdf.intensities, sdf.intensities_yearly
         )
         overlaid.indicators = overlay_in_order(
-            overlaid.indicators, root.indicators, root.indicators_yearly
+            overlaid.indicators, sdf.indicators, sdf.indicators_yearly
         )
         if overlaid.tech_metadata.empty:
-            overlaid.tech_metadata = root.tech_metadata
+            overlaid.tech_metadata = sdf.tech_metadata
         else:
             overlaid.tech_metadata = (
-                pd.concat([overlaid.tech_metadata, root.tech_metadata])
+                pd.concat([overlaid.tech_metadata, sdf.tech_metadata])
                 .groupby(level=(0, 1))
                 .last()
             )
 
         # Go down in the hierarchy
-        for name, directory in root.children.items():
-            yield from dfs(directory, overlaid, label / name)
+        for name, directory in sdf.children.items():
+            yield from add_sparse_years_to_sdf(directory, overlaid, label / name)
 
         # Yield only leaves
-        if not root.children:
-            assert root.targets is not None
-            overlaid.targets = root.targets
+        if not sdf.children:
+            assert sdf.targets is not None
+            overlaid.targets = sdf.targets
             # Trim tech_meta to the techs specified in targets
             overlaid.tech_metadata = overlaid.tech_metadata.reindex(
                 overlaid.targets.index
@@ -113,12 +115,12 @@ def flatten_hierarchy(
         tech_metadata=pd.DataFrame(),
     )
 
-    ret = []
+    flattened = []
     all_mismatched_resources: dict[tuple[str, ...], list[Path]] = defaultdict(list)
-    for label, sparse_years, mismatched_resources in dfs(
+    for label, sparse_years, mismatched_resources in add_sparse_years_to_sdf(
         root_sdf, initial, Path(root_sdf.name)
     ):
-        ret.append((label, sparse_years))
+        flattened.append((label, sparse_years))
         if mismatched_resources:
             all_mismatched_resources[tuple(sorted(mismatched_resources))].append(label)
 
@@ -128,4 +130,4 @@ def flatten_hierarchy(
         )
         logging.warning(f"Mismatched resources: {resources}!\n        {tree_lines}")
 
-    return ret
+    return flattened

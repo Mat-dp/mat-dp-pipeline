@@ -39,9 +39,8 @@ def _interpolate_intensities(
         final = n + r
         return final.astype(int)
 
-    ordering = get_permutation()
     df = pd.DataFrame(
-        interpolated_array[ordering].reshape(-1, len(df.columns)),
+        interpolated_array[get_permutation()].reshape(-1, len(df.columns)),
         index=df.index,
         columns=df.columns,
     )
@@ -80,9 +79,8 @@ def _interpolate_indicators(
         final = n + r
         return final.astype(int)
 
-    ordering = get_permutation()
     df = pd.DataFrame(
-        interpolated_array[ordering].reshape(-1, len(df.columns)),
+        interpolated_array[get_permutation()].reshape(-1, len(df.columns)),
         index=df.index,
         columns=df.columns,
     )

@@ -2,12 +2,12 @@ import re
 import shutil
 from pathlib import Path
 
-import mat_dp_pipeline.sdf.standard_data_format as sdf
 from mat_dp_pipeline.abstract_data_sources import (
     IndicatorsSource,
     IntensitiesSource,
     TargetsSource,
 )
+from mat_dp_pipeline.sdf import IndicatorsReader, IntensitiesReader, TargetsReader
 
 
 def copy_files(src: Path, dst: Path, file_pattern: re.Pattern) -> None:
@@ -36,18 +36,17 @@ class _StoredSource:
 
 class StoredTargets(_StoredSource, TargetsSource):
     def __call__(self, output_dir: Path) -> None:
-        # TODO: better would be to change *Reader.file_pattern into a static member
-        pattern = sdf.TargetsReader().file_pattern
+        pattern = TargetsReader().file_pattern
         copy_files(self.path, output_dir, pattern)
 
 
 class StoredIntensities(_StoredSource, IntensitiesSource):
     def __call__(self, output_dir: Path) -> None:
-        pattern = sdf.IntensitiesReader().file_pattern
+        pattern = IntensitiesReader().file_pattern
         copy_files(self.path, output_dir, pattern)
 
 
 class StoredIndicators(_StoredSource, IndicatorsSource):
     def __call__(self, output_dir: Path) -> None:
-        pattern = sdf.IndicatorsReader().file_pattern
+        pattern = IndicatorsReader().file_pattern
         copy_files(self.path, output_dir, pattern)
