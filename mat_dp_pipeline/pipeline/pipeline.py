@@ -32,12 +32,19 @@ class PipelineOutput:
         self._tech_metadata = tech_metadata
 
         if data:
-            # We know from the computation that each LabelledOutput has the same
-            # set of indicators, so we'll just take the first one
-            # TODO: we must assert somewhere (not here?) that all the outputs have the same indicators
+            # We know from the computation that each LabelledOutput has the same set of indicators
             self._indicators = data[0].indicators
         else:
             self._indicators = set()
+
+        assert all(
+            datum.indicators == self._indicators for datum in data
+        ), "Every single output must have the same set of indicators!"
+        assert all(
+            len(group["Material Unit"].unique()) == 1
+            and len(group["Production Unit"].unique()) == 1
+            for _, group in self._tech_metadata.groupby("Category")
+        ), "Every tech category must have unique matererial and production units!"
 
         for output in data:
             self._by_year[output.year][output.path] = output

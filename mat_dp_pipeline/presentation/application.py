@@ -8,6 +8,7 @@ from dash import Dash, dcc, html
 from dash.dependencies import Input, Output
 from dash.exceptions import PreventUpdate
 
+from mat_dp_pipeline.common import Tree, create_path_tree
 from mat_dp_pipeline.pipeline import PipelineOutput
 from mat_dp_pipeline.presentation.plotting import (
     indicator_by_resource_agg,
@@ -34,6 +35,32 @@ CONTENT_STYLE = {
     "margin-right": "2rem",
     "padding": "2rem 1rem",
 }
+
+
+def create_dropdown(tree: Tree) -> list[tuple[str, bool]]:
+    """Create a padded list of strings out of a tree. Each element, apart from
+    the actual text value contains a boolean indicating whether it's a leaf of a tree or not.
+    """
+
+    def add_node_to_result(node: Tree, result: list[tuple[str, bool]], prefix: str):
+        """
+        Adds the specified node to the result list, via a depth first search.
+        """
+        if node is None:
+            return None
+
+        for k, v in node.items():
+            new_prefix = f"{(len(prefix))*' '}{k}"
+            if v is None:
+                result.append((new_prefix, True))
+            else:
+                result.append((new_prefix, False))
+                add_node_to_result(v, result, (len(prefix) + 3) * " ")
+
+    result: list[tuple[str, bool]] = []
+    add_node_to_result(tree, result, "")
+
+    return result
 
 
 class App:
@@ -70,10 +97,28 @@ class App:
             paths = sorted({Path(*p.parts[:-levels_to_trim]) for p in self.paths})
         else:
             paths = sorted(self.paths)
-        return dcc.Dropdown(
-            options={str(p): str(p.relative_to(lowest_common_ancestor)) for p in paths},
-            id="country",
-        )
+
+        # combine paths as values and labels from a created tree. For non-leaf elements
+        # in the tree, there's no value.
+        paths_without_lca = [p.relative_to(lowest_common_ancestor) for p in paths]
+        p_idx = 0
+        dropdown_items = create_dropdown(create_path_tree(paths_without_lca))
+        options = []
+        for label, is_leaf in dropdown_items:
+            if is_leaf:
+                value = str(paths[p_idx])
+                p_idx += 1
+            else:
+                value = None
+            options.append(
+                {
+                    "label": label.replace(" ", "\u2000"),
+                    "value": value,
+                    "disabled": not is_leaf,
+                }
+            )
+
+        return dcc.Dropdown(options=options, id="country")
 
     def _leaf_dropdowns(self) -> list[tuple[str, dcc.Dropdown]]:
         levels_to_trim = len(self.path_leaf_split)

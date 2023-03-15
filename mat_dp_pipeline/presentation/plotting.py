@@ -166,7 +166,7 @@ def required_resources_agg(data: PipelineOutput, path: Path):
         x=materials,
         y=materials.index,
         color=materials.index,
-        labels={"value": "Kg"},  # TODO: units!!!
+        labels={"x": "Kg"},  # TODO: units!!!
     )
     fig.update_layout(
         title=f"Materials production ({years[0]}-{years[-1]})",
