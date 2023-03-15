@@ -4,7 +4,7 @@ from typing import cast
 
 import pandas as pd
 
-import mat_dp_pipeline.sdf.standard_data_format as sdf
+from mat_dp_pipeline.sdf import validate_tech_units
 
 
 @dataclass(eq=False, order=False)
@@ -52,7 +52,7 @@ class SparseYearsInput:
             whether it's an error or not. No exception is thrown here if this set
             isn't empty.
         """
-        sdf.validate_tech_units(self.tech_metadata)
+        validate_tech_units(self.tech_metadata)
         intensities_techs = self.intensities.index.droplevel(0).unique()
         targets_techs = self.targets.index
 
@@ -68,6 +68,7 @@ class SparseYearsInput:
             .reorder_levels(["Year", "Category", "Specific"])
             .sort_index()
         )
+
         # unstack/stack messes with types
         assert isinstance(self.intensities, pd.DataFrame)
 
@@ -114,7 +115,8 @@ class ProcessableInput:
 
         Args:
             directory (Path): output directory (must exist)
-            exist_ok (bool, optional):  Is it OK if files exist already. They will be overriden if so. Defaults to False.
+            exist_ok (bool, optional):  Is it OK if files exist already.
+                                        They will be overridden if so. Defaults to False.
         """
         assert directory.is_dir()
 
