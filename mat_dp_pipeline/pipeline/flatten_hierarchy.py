@@ -68,9 +68,10 @@ def flatten_hierarchy(
         sdf: StandardDataFormat, sparse_years: SparseYearsInput, label: Path
     ) -> Iterator[tuple[Path, SparseYearsInput, set[str]]]:
         if not (
-            sdf.indicators.empty
+            sdf.base_indicators.empty
             or sparse_years.indicators.empty
-            or list(sparse_years.indicators.columns) == list(sdf.indicators.columns)
+            or list(sparse_years.indicators.columns)
+            == list(sdf.base_indicators.columns)
         ):
             raise ValueError(
                 f"{label}: Indicators' names on each level have to be the same!"
@@ -78,10 +79,10 @@ def flatten_hierarchy(
 
         overlaid = sparse_years.copy()
         overlaid.intensities = overlay_in_order(
-            overlaid.intensities, sdf.intensities, sdf.intensities_yearly
+            overlaid.intensities, sdf.base_intensities, sdf.intensities_yearly
         )
         overlaid.indicators = overlay_in_order(
-            overlaid.indicators, sdf.indicators, sdf.indicators_yearly
+            overlaid.indicators, sdf.base_indicators, sdf.indicators_yearly
         )
         if overlaid.tech_metadata.empty:
             overlaid.tech_metadata = sdf.tech_metadata
