@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import cast
 
 import pandas as pd
 
@@ -60,14 +59,11 @@ class SparseYearsInput:
             raise ValueError("Target's techs must be a subset of intensities' techs!")
 
         # move years to columns, reindex techs, bring the years back
-        self.intensities = (
-            cast(
-                pd.DataFrame,
-                self.intensities.unstack(level=0).reindex(targets_techs).stack(),
-            )
-            .reorder_levels(["Year", "Category", "Specific"])
-            .sort_index()
-        )
+        intensities = self.intensities.unstack(level=0).reindex(targets_techs).stack()
+        assert isinstance(intensities, pd.DataFrame)
+        self.intensities = intensities.reorder_levels(
+            ["Year", "Category", "Specific"]
+        ).sort_index()
 
         # unstack/stack messes with types
         assert isinstance(self.intensities, pd.DataFrame)
