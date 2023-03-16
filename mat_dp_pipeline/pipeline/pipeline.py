@@ -1,11 +1,13 @@
 from collections import defaultdict
 from dataclasses import dataclass
+from multiprocessing import Pool, cpu_count
 from pathlib import Path
 from typing import Iterator, overload
 
 import pandas as pd
 
 from mat_dp_pipeline.pipeline.calculation import ProcessedOutput, calculate
+from mat_dp_pipeline.pipeline.common import ProcessableInput, SparseYearsInput
 from mat_dp_pipeline.pipeline.flatten_hierarchy import flatten_hierarchy
 from mat_dp_pipeline.pipeline.sparse_to_processable_input import to_processable_input
 from mat_dp_pipeline.sdf import StandardDataFormat, Year
@@ -119,28 +121,40 @@ class PipelineOutput:
         return self._length
 
 
+def make_iterator(flattened: list[tuple[Path, SparseYearsInput]]):
+    for path, sparse_years in flattened:
+        for path, year, inpt in to_processable_input(path, sparse_years):
+            yield (path, year, inpt)
+
+
+def full_calculate(full_inpt: tuple[Path, Year, ProcessableInput]):
+    path, year, inpt = full_inpt
+    result = calculate(inpt)
+    return LabelledOutput(
+        required_resources=result.required_resources,
+        emissions=result.emissions,
+        year=year,
+        path=path,
+    )
+
+
 def pipeline(sdf: StandardDataFormat) -> PipelineOutput:
     """Converts the input data to the PipelineOutput format.
 
     Returns:
         PipelineOutput: The fully converted output of the pipeline
     """
-    processed = []
+
+    flattened = flatten_hierarchy(sdf)
+    with Pool(cpu_count()) as p:
+        processed = p.map(full_calculate, make_iterator(flattened))
+
     tech_metadata = pd.DataFrame()
-    for path, sparse_years in flatten_hierarchy(sdf):
+    for _, sparse_years in flattened:
         tech_metadata = (
             pd.concat([sparse_years.tech_metadata, tech_metadata])
             .groupby(level=(0, 1))
             .last()
         )
-        for path, year, inpt in to_processable_input(path, sparse_years):
-            result = calculate(inpt)
-            processed.append(
-                LabelledOutput(
-                    required_resources=result.required_resources,
-                    emissions=result.emissions,
-                    year=year,
-                    path=path,
-                )
-            )
+
     return PipelineOutput(processed, tech_metadata)
