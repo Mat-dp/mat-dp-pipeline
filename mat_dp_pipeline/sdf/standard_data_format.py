@@ -196,12 +196,12 @@ def load(input_dir: Path) -> StandardDataFormat:
     def dfs(root: Path) -> StandardDataFormat | None:
         sub_directories = list(filter(lambda p: p.is_dir(), root.iterdir()))
 
-        base_intensities = None
-        intensities_yearly = {}
-        base_indicators = None
-        indicators_yearly = {}
-        targets = None
-        children: dict[str, "StandardDataFormat"] = {}
+        base_intensities: pd.DataFrame | None = None
+        intensities_yearly: dict[Year, pd.DataFrame] = {}
+        base_indicators: pd.DataFrame | None = None
+        indicators_yearly: dict[Year, pd.DataFrame] = {}
+        targets: pd.DataFrame | None = None
+        children: dict[str, StandardDataFormat] = {}
 
         files = filter(lambda f: f.is_file(), root.iterdir())
         for file in files:
@@ -209,7 +209,6 @@ def load(input_dir: Path) -> StandardDataFormat:
                 year = match.group(1)
                 df = intensities_reader.read(file)
                 if year is None:
-                    # base file
                     base_intensities = df
                 else:
                     year = Year(year)
@@ -218,7 +217,6 @@ def load(input_dir: Path) -> StandardDataFormat:
                 year = match.group(1)
                 df = indicators_reader.read(file)
                 if year is None:
-                    # base file
                     base_indicators = df
                 else:
                     year = Year(year)
@@ -240,7 +238,7 @@ def load(input_dir: Path) -> StandardDataFormat:
         # Ignore leaves with no targets specified
         if targets is None and not sub_directories:
             logging.warning(f"No targets found in {root.name}. Ignoring.")
-            return
+            return None
         else:
             # *Move* metadata from all intensity frames into tech_metadata
             tech_metadata_cols = ["Description", "Material Unit", "Production Unit"]
@@ -253,11 +251,8 @@ def load(input_dir: Path) -> StandardDataFormat:
             else:
                 tech_metadata = pd.DataFrame()
 
-            for inten in filter(lambda df: not df.empty, all_intensities):
-                inten.drop(columns=tech_metadata_cols, inplace=True)
-            # TODO: I presume this works because the references are in the above list - but I think
-            # this would be clearer with each separate. Also is intensities_yearly.values() even
-            # a reference?
+            for intensities in filter(lambda df: not df.empty, all_intensities):
+                intensities.drop(columns=tech_metadata_cols, inplace=True)
 
             return StandardDataFormat(
                 name=root.name,
