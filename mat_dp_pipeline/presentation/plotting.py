@@ -81,7 +81,7 @@ def indicator_by_tech_agg(
         labels={"value": indicator},
         color_discrete_sequence=px.colors.qualitative.Alphabet,
     )
-    years = sorted(data.keys(Year))
+    years = sorted(data.by_year.keys())
     fig.update_layout(
         title=f"Emissions by technology ({years[0]}-{years[-1]})",
         title_font_size=24,
@@ -112,7 +112,7 @@ def indicator_by_resource_agg(
         color="Resource",
         color_discrete_sequence=px.colors.qualitative.Alphabet,
     )
-    years = sorted(data.keys(Year))
+    years = sorted(data.by_year.keys())
     fig.update_layout(
         title=f"Emissions by technology ({years[0]}-{years[-1]})",
         title_font_size=24,
@@ -147,7 +147,7 @@ def required_resources_by_tech_agg(data: PipelineOutput, path: Path) -> go.Figur
         color_discrete_sequence=px.colors.qualitative.Alphabet,
         labels={"value": "Kg"},  # TODO: !!!! UNITS!!!
     )
-    years = sorted(data.keys(Year))
+    years = sorted(data.by_year.keys())
     fig.update_layout(
         title=f"Materials production by technology ({years[0]}-{years[-1]})",
         title_font_size=24,
@@ -160,7 +160,7 @@ def required_resources_by_tech_agg(data: PipelineOutput, path: Path) -> go.Figur
 def required_resources_agg(data: PipelineOutput, path: Path):
     materials = data.resources(path).sum()
     materials = materials[materials > 0]
-    years = sorted(data.keys(Year))
+    years = sorted(data.by_year.keys())
     fig = px.bar(
         materials,
         x=materials,

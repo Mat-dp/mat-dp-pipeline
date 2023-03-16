@@ -71,13 +71,6 @@ class PipelineOutput:
     def by_path(self) -> dict[Path, dict[Year, LabelledOutput]]:
         return self._by_path
 
-    def keys(self, axis: type):
-        assert axis in (Year, Path)
-        if axis == Year:
-            return self.by_year.keys()
-        else:
-            return self.by_path.keys()
-
     @property
     def indicators(self):
         return self._indicators
