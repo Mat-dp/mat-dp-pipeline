@@ -193,8 +193,8 @@ class App:
     def generate_indicator_graphs(self, path: Path, indicator: str) -> list[go.Figure]:
         return [
             indicator_by_resource_over_years(self.outputs, path, indicator),
-            indicator_by_resource_agg(self.outputs, path, indicator),
             indicator_by_tech_agg(self.outputs, path, indicator),
+            indicator_by_resource_agg(self.outputs, path, indicator),
         ]
 
     def register_callback(self, fn, *spec):
