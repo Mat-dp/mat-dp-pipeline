@@ -6,7 +6,6 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 from mat_dp_pipeline.pipeline import PipelineOutput
-from mat_dp_pipeline.sdf import Year
 
 IndicatorPlotter = Callable[[PipelineOutput, str, str], go.Figure]
 RequiredResourcesPlotter = Callable[[PipelineOutput, str], go.Figure]
@@ -114,7 +113,7 @@ def indicator_by_resource_agg(
     )
     years = sorted(data.by_year.keys())
     fig.update_layout(
-        title=f"Emissions by technology ({years[0]}-{years[-1]})",
+        title=f"Emissions by resource ({years[0]}-{years[-1]})",
         title_font_size=24,
         updatemenus=[x_log_switch()],
     )
