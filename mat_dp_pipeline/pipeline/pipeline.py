@@ -121,13 +121,9 @@ class PipelineOutput:
         return self._length
 
 
-def make_iterator(flattened: list[tuple[Path, SparseYearsInput]]):
-    for path, sparse_years in flattened:
-        for path, year, inpt in to_processable_input(path, sparse_years):
-            yield (path, year, inpt)
-
-
-def full_calculate(full_inpt: tuple[Path, Year, ProcessableInput]):
+def _to_labelled_output(
+    full_inpt: tuple[Path, Year, ProcessableInput]
+) -> LabelledOutput:
     path, year, inpt = full_inpt
     result = calculate(inpt)
     return LabelledOutput(
@@ -145,9 +141,16 @@ def pipeline(sdf: StandardDataFormat) -> PipelineOutput:
         PipelineOutput: The fully converted output of the pipeline
     """
 
+    def _make_iterator(
+        flattened: list[tuple[Path, SparseYearsInput]]
+    ) -> Iterator[tuple[Path, Year, ProcessableInput]]:
+        for path, sparse_years in flattened:
+            for path, year, inpt in to_processable_input(path, sparse_years):
+                yield (path, year, inpt)
+
     flattened = flatten_hierarchy(sdf)
     with Pool(cpu_count()) as p:
-        processed = p.map(full_calculate, make_iterator(flattened))
+        processed = p.map(_to_labelled_output, _make_iterator(flattened))
 
     tech_metadata = pd.DataFrame()
     for _, sparse_years in flattened:
