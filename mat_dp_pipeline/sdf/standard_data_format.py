@@ -38,7 +38,7 @@ class InputReader(ABC):
 class IntensitiesReader(InputReader):
     @property
     def file_pattern(self) -> re.Pattern:
-        return re.compile(r"techs_?([0-9]{4})?.csv")
+        return re.compile(r"intensities_?([0-9]{4})?.csv")
 
     def read(self, path: FileOrPath) -> pd.DataFrame:
         str_cols = [

@@ -13,12 +13,18 @@ class BaseSource(ABC):
 
 
 class IntensitiesSource(BaseSource):
-    pass
+    base_file_name = "intensities.csv"
+
+    def year_file_name_maker(self, year: int):
+        return f"intensities_{year}.csv"
 
 
 class TargetsSource(BaseSource):
-    pass
+    file_name = "targets.csv"
 
 
 class IndicatorsSource(BaseSource):
-    pass
+    base_file_name = "indicators.csv"
+
+    def year_file_name_maker(self, year: int):
+        return f"indicators_{year}.csv"
