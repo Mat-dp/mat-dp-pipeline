@@ -92,10 +92,10 @@ class IndicatorsReader(InputReader):
 class StandardDataFormat:
     name: str
 
-    intensities: pd.DataFrame
+    base_intensities: pd.DataFrame
     intensities_yearly: dict[Year, pd.DataFrame]
 
-    indicators: pd.DataFrame
+    base_indicators: pd.DataFrame
     indicators_yearly: dict[Year, pd.DataFrame]
 
     targets: pd.DataFrame | None
@@ -124,18 +124,18 @@ class StandardDataFormat:
                 f"{self.name}: SDF must either have children in the hierarchy or defined targets (leaf level)"
             )
 
-        if self.intensities is None and self.intensities_yearly is not None:
+        if self.base_intensities is None and self.intensities_yearly is not None:
             raise ValueError(
                 f"{self.name}: No base intensities, while yearly files provided!"
             )
 
-        if self.indicators is None and self.indicators_yearly is not None:
+        if self.base_indicators is None and self.indicators_yearly is not None:
             raise ValueError(
                 f"{self.name}: No base indicators, while yearly files provided!"
             )
 
-        validate_yearly_keys(self.intensities, self.intensities_yearly)
-        validate_yearly_keys(self.indicators, self.indicators_yearly)
+        validate_yearly_keys(self.base_intensities, self.intensities_yearly)
+        validate_yearly_keys(self.base_indicators, self.indicators_yearly)
 
         try:
             validate_tech_units(self.tech_metadata)
@@ -153,8 +153,8 @@ class StandardDataFormat:
     def save_intensities(self, root_dir: Path) -> None:
         output_dir = self._prepare_output_dir(root_dir)
 
-        if not self.intensities.empty:
-            self.intensities.to_csv(output_dir / "intensities.csv")
+        if not self.base_intensities.empty:
+            self.base_intensities.to_csv(output_dir / "intensities.csv")
         for year, intensities in self.intensities_yearly.items():
             intensities.to_csv(output_dir / f"intensities_{year}.csv")
 
@@ -164,8 +164,8 @@ class StandardDataFormat:
     def save_indicators(self, root_dir: Path) -> None:
         output_dir = self._prepare_output_dir(root_dir)
 
-        if not self.indicators.empty:
-            self.indicators.to_csv(output_dir / "indicators.csv")
+        if not self.base_indicators.empty:
+            self.base_indicators.to_csv(output_dir / "indicators.csv")
         for year, indicators in self.indicators_yearly.items():
             indicators.to_csv(output_dir / f"indicators_{year}.csv")
 
@@ -196,9 +196,9 @@ def load(input_dir: Path) -> StandardDataFormat:
     def dfs(root: Path) -> StandardDataFormat | None:
         sub_directories = list(filter(lambda p: p.is_dir(), root.iterdir()))
 
-        intensities = None
+        base_intensities = None
         intensities_yearly = {}
-        indicators = None
+        base_indicators = None
         indicators_yearly = {}
         targets = None
         children: dict[str, "StandardDataFormat"] = {}
@@ -210,7 +210,7 @@ def load(input_dir: Path) -> StandardDataFormat:
                 df = intensities_reader.read(file)
                 if year is None:
                     # base file
-                    intensities = df
+                    base_intensities = df
                 else:
                     year = Year(year)
                     intensities_yearly[year] = df
@@ -219,7 +219,7 @@ def load(input_dir: Path) -> StandardDataFormat:
                 df = indicators_reader.read(file)
                 if year is None:
                     # base file
-                    indicators = df
+                    base_indicators = df
                 else:
                     year = Year(year)
                     indicators_yearly[year] = df
@@ -232,8 +232,10 @@ def load(input_dir: Path) -> StandardDataFormat:
                 children[sub_directory.name] = leaf
 
         # If not intensities or indicators were provided, use empty ones
-        intensities = pd.DataFrame() if intensities is None else intensities
-        indicators = pd.DataFrame() if indicators is None else indicators
+        base_intensities = (
+            pd.DataFrame() if base_intensities is None else base_intensities
+        )
+        base_indicators = pd.DataFrame() if base_indicators is None else base_indicators
 
         # Ignore leaves with no targets specified
         if targets is None and not sub_directories:
@@ -242,7 +244,7 @@ def load(input_dir: Path) -> StandardDataFormat:
         else:
             # *Move* metadata from all intensity frames into tech_metadata
             tech_metadata_cols = ["Description", "Material Unit", "Production Unit"]
-            all_intensities = list(intensities_yearly.values()) + [intensities]
+            all_intensities = list(intensities_yearly.values()) + [base_intensities]
             all_metadata = [
                 i.loc[:, tech_metadata_cols] for i in all_intensities if not i.empty
             ]
@@ -253,12 +255,15 @@ def load(input_dir: Path) -> StandardDataFormat:
 
             for inten in filter(lambda df: not df.empty, all_intensities):
                 inten.drop(columns=tech_metadata_cols, inplace=True)
+            # TODO: I presume this works because the references are in the above list - but I think
+            # this would be clearer with each separate. Also is intensities_yearly.values() even
+            # a reference?
 
             return StandardDataFormat(
                 name=root.name,
-                intensities=intensities,
+                base_intensities=base_intensities,
                 intensities_yearly=intensities_yearly,
-                indicators=indicators,
+                base_indicators=base_indicators,
                 indicators_yearly=indicators_yearly,
                 targets=targets,
                 children=children,
