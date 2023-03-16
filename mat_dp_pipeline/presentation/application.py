@@ -71,7 +71,7 @@ class App:
         self.dash_app = Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
         self.outputs = outputs
         self.indicators = sorted(self.outputs.indicators)
-        self.paths: list[Path] = sorted(self.outputs.by_path.keys())
+        self.paths = sorted(self.outputs.by_path.keys())
 
         self.path_leaf_split = path_leaf_split
 
