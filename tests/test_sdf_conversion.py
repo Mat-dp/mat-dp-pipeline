@@ -80,8 +80,6 @@ def test_hierarchy(data_path, test_name: str):
 def test_failure_new_tech_in_yearly_file(data_path):
     with pytest.raises(
         ValueError,
-        match=re.escape(
-            "Invalid_YearlyFileWithNewTech: Yearly file (2020) introduces new items!"
-        ),
+        match=re.escape("/: Yearly file (2020) introduces new items!"),
     ):
         list(flatten_hierarchy(sdf.load(data_path("Invalid_YearlyFileWithNewTech"))))

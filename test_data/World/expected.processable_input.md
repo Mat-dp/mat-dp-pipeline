@@ -1,6 +1,6 @@
 # World processed into ProcesableInput
 
-## World/Europe/Germany -- 2014
+## /Europe/Germany -- 2014
 ### Intensities
 ```
                                    PVC  Silicon  Steel
@@ -25,7 +25,7 @@ Global       Tech1                   7.2014
 Power plant  Gas-country-override    3.2014
 ```
 
-## World/Europe/Germany -- 2016
+## /Europe/Germany -- 2016
 ### Intensities
 ```
                                    PVC  Silicon  Steel
@@ -50,7 +50,7 @@ Global       Tech1                   8.2016
 Power plant  Gas-country-override    4.2016
 ```
 
-## World/Europe/Germany -- 2017
+## /Europe/Germany -- 2017
 ### Intensities
 ```
                                    PVC  Silicon  Steel
@@ -75,7 +75,7 @@ Global       Tech1                   9.2017
 Power plant  Gas-country-override    5.2017
 ```
 
-## World/Europe/Germany -- 2018
+## /Europe/Germany -- 2018
 ### Intensities
 ```
                                    PVC  Silicon  Steel
@@ -100,7 +100,7 @@ Global       Tech1                   10.2018
 Power plant  Gas-country-override     6.2018
 ```
 
-## World/Europe/UK -- 2014
+## /Europe/UK -- 2014
 ### Intensities
 ```
                                     PVC  Silicon  Steel
@@ -127,7 +127,7 @@ NotOverriden  Europe                  3.2014
 Power plant   Gas-country-override    1.2014
 ```
 
-## World/Europe/UK -- 2016
+## /Europe/UK -- 2016
 ### Intensities
 ```
                                         PVC   Silicon     Steel
@@ -154,7 +154,7 @@ NotOverriden  Europe                  3.2016
 Power plant   Gas-country-override    1.2016
 ```
 
-## World/Europe/UK -- 2017
+## /Europe/UK -- 2017
 ### Intensities
 ```
                                     PVC  Silicon  Steel
@@ -181,7 +181,7 @@ NotOverriden  Europe                  3.2017
 Power plant   Gas-country-override    1.2017
 ```
 
-## World/Europe/UK -- 2018
+## /Europe/UK -- 2018
 ### Intensities
 ```
                                     PVC  Silicon  Steel

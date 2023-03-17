@@ -146,7 +146,9 @@ class StandardDataFormat:
             logging.warning(e)
 
     def _prepare_output_dir(self, root_dir: Path) -> Path:
-        output_dir = root_dir / self.name
+        output_dir = root_dir
+        if self.name != "/":  # not root
+            output_dir /= self.name
         output_dir.mkdir(parents=True, exist_ok=True)
         return output_dir
 
@@ -199,8 +201,8 @@ def load(input_dir: Path) -> StandardDataFormat:
     intensities_reader = IntensitiesReader()
     indicators_reader = IndicatorsReader()
 
-    def dfs(root: Path) -> StandardDataFormat | None:
-        sub_directories = list(filter(lambda p: p.is_dir(), root.iterdir()))
+    def dfs(node: Path, is_root: bool) -> StandardDataFormat | None:
+        sub_directories = list(filter(lambda p: p.is_dir(), node.iterdir()))
 
         base_intensities: pd.DataFrame | None = None
         intensities_yearly: dict[Year, pd.DataFrame] = {}
@@ -209,7 +211,7 @@ def load(input_dir: Path) -> StandardDataFormat:
         targets: pd.DataFrame | None = None
         children: dict[str, StandardDataFormat] = {}
 
-        files = filter(lambda f: f.is_file(), root.iterdir())
+        files = filter(lambda f: f.is_file(), node.iterdir())
         for file in files:
             if match := intensities_reader.file_pattern.match(file.name):
                 year = match.group(1)
@@ -231,7 +233,7 @@ def load(input_dir: Path) -> StandardDataFormat:
                 targets = targets_reader.read(file)
 
         for sub_directory in sub_directories:
-            leaf = dfs(sub_directory)
+            leaf = dfs(sub_directory, False)
             if leaf is not None:
                 children[sub_directory.name] = leaf
 
@@ -243,7 +245,7 @@ def load(input_dir: Path) -> StandardDataFormat:
 
         # Ignore leaves with no targets specified
         if targets is None and not sub_directories:
-            logging.warning(f"No targets found in {root.name}. Ignoring.")
+            logging.warning(f"No targets found in {node.name}. Ignoring.")
             return None
         else:
             # *Move* metadata from all intensity frames into tech_metadata
@@ -261,7 +263,7 @@ def load(input_dir: Path) -> StandardDataFormat:
                 intensities.drop(columns=tech_metadata_cols, inplace=True)
 
             return StandardDataFormat(
-                name=root.name,
+                name="/" if is_root else node.name,
                 base_intensities=base_intensities,
                 intensities_yearly=intensities_yearly,
                 base_indicators=base_indicators,
@@ -271,6 +273,6 @@ def load(input_dir: Path) -> StandardDataFormat:
                 tech_metadata=tech_metadata,
             )
 
-    root_dfs = dfs(input_dir)
+    root_dfs = dfs(input_dir, True)
     assert root_dfs is not None
     return root_dfs
