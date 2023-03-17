@@ -151,12 +151,18 @@ class StandardDataFormat:
         return output_dir
 
     def save_intensities(self, root_dir: Path) -> None:
+        def add_metadata(intensities: pd.DataFrame):
+            df = intensities.join(self.tech_metadata)
+            assert len(df) == len(intensities)
+            cols = self.tech_metadata.columns.to_list() + intensities.columns.to_list()
+            return df.loc[:, cols]
+
         output_dir = self._prepare_output_dir(root_dir)
 
         if not self.base_intensities.empty:
-            self.base_intensities.to_csv(output_dir / "intensities.csv")
+            add_metadata(self.base_intensities).to_csv(output_dir / "intensities.csv")
         for year, intensities in self.intensities_yearly.items():
-            intensities.to_csv(output_dir / f"intensities_{year}.csv")
+            add_metadata(intensities).to_csv(output_dir / f"intensities_{year}.csv")
 
         for sdf in self.children.values():
             sdf.save_intensities(output_dir)
