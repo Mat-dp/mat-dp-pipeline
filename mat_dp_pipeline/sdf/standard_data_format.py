@@ -145,15 +145,13 @@ class StandardDataFormat:
             # us then. Just warn for now. We'll validate again for the calculation.
             logging.warning(e)
 
-    def _prepare_output_dir(self, root_dir: Path, create_sub_dir: bool = False) -> Path:
-        output_dir = root_dir
-        if create_sub_dir:
-            output_dir /= self.name
+    def _prepare_output_dir(self, root_dir: Path) -> Path:
+        output_dir = root_dir / self.name
         output_dir.mkdir(parents=True, exist_ok=True)
         return output_dir
 
-    def save_intensities(self, root_dir: Path, create_sub_dir: bool = False) -> None:
-        output_dir = self._prepare_output_dir(root_dir, create_sub_dir)
+    def save_intensities(self, root_dir: Path) -> None:
+        output_dir = self._prepare_output_dir(root_dir)
 
         if not self.base_intensities.empty:
             self.base_intensities.to_csv(output_dir / "intensities.csv")
@@ -161,10 +159,10 @@ class StandardDataFormat:
             intensities.to_csv(output_dir / f"intensities_{year}.csv")
 
         for sdf in self.children.values():
-            sdf.save_intensities(output_dir, True)
+            sdf.save_intensities(output_dir)
 
-    def save_indicators(self, root_dir: Path, create_sub_dir: bool = False) -> None:
-        output_dir = self._prepare_output_dir(root_dir, create_sub_dir)
+    def save_indicators(self, root_dir: Path) -> None:
+        output_dir = self._prepare_output_dir(root_dir)
 
         if not self.base_indicators.empty:
             self.base_indicators.to_csv(output_dir / "indicators.csv")
@@ -172,21 +170,21 @@ class StandardDataFormat:
             indicators.to_csv(output_dir / f"indicators_{year}.csv")
 
         for sdf in self.children.values():
-            sdf.save_indicators(output_dir, True)
+            sdf.save_indicators(output_dir)
 
-    def save_targets(self, root_dir: Path, create_sub_dir: bool = False) -> None:
-        output_dir = self._prepare_output_dir(root_dir, create_sub_dir)
+    def save_targets(self, root_dir: Path) -> None:
+        output_dir = self._prepare_output_dir(root_dir)
 
         if self.targets is not None:
             self.targets.to_csv(output_dir / "targets.csv")
         else:
             for sdf in self.children.values():
-                sdf.save_targets(output_dir, True)
+                sdf.save_targets(output_dir)
 
-    def save(self, root_dir: Path, create_sub_dir: bool = False) -> None:
-        self.save_intensities(root_dir, create_sub_dir)
-        self.save_indicators(root_dir, create_sub_dir)
-        self.save_targets(root_dir, create_sub_dir)
+    def save(self, root_dir: Path) -> None:
+        self.save_intensities(root_dir)
+        self.save_indicators(root_dir)
+        self.save_targets(root_dir)
 
 
 def load(input_dir: Path) -> StandardDataFormat:
