@@ -1,4 +1,4 @@
-# World processed into ProcesableInput
+# World processed into ProcessableInput
 
 ## /Europe/Germany -- 2014
 ### Intensities

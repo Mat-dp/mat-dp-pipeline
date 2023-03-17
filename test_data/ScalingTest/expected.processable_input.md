@@ -1,4 +1,4 @@
-# ScalingTest processed into ProcesableInput
+# ScalingTest processed into ProcessableInput
 
 ## / -- 2010
 ### Intensities

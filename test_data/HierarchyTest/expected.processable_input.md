@@ -1,4 +1,4 @@
-# HierarchyTest processed into ProcesableInput
+# HierarchyTest processed into ProcessableInput
 
 ## /Europe/UK -- 2010
 ### Intensities
