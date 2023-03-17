@@ -50,7 +50,7 @@ class MatDPDBIntensitiesSource(IntensitiesSource):
             df = intensities.drop(columns=["Location"])
             location_dir = output_dir / path
             location_dir.mkdir(exist_ok=True, parents=True)
-            df.to_csv(location_dir / "techs.csv", index=False)
+            df.to_csv(location_dir / self.base_file_name, index=False)
 
 
 class MatDPDBIndicatorsSource(IndicatorsSource):
@@ -73,5 +73,5 @@ class MatDPDBIndicatorsSource(IndicatorsSource):
             )
             .rename(columns={"Material code": "Resource"})
             .dropna()
-            .to_csv(output_dir / "indicators.csv", index=False)
+            .to_csv(output_dir / self.base_file_name, index=False)
         )

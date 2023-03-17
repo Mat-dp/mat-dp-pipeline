@@ -1,6 +1,6 @@
-# HierarchyTest processed into ProcesableInput
+# HierarchyTest processed into ProcessableInput
 
-## HierarchyTest/Europe/UK -- 2010
+## /Europe/UK -- 2010
 ### Intensities
 ```
                    Steel
@@ -25,7 +25,7 @@ Tech      L0          2010.1
           L2          2010.3
 ```
 
-## HierarchyTest/Europe/UK -- 2020
+## /Europe/UK -- 2020
 ### Intensities
 ```
                    Steel

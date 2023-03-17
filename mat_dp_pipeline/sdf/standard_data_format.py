@@ -38,7 +38,7 @@ class InputReader(ABC):
 class IntensitiesReader(InputReader):
     @property
     def file_pattern(self) -> re.Pattern:
-        return re.compile(r"techs_?([0-9]{4})?.csv")
+        return re.compile(r"intensities_?([0-9]{4})?.csv")
 
     def read(self, path: FileOrPath) -> pd.DataFrame:
         str_cols = [
@@ -145,24 +145,35 @@ class StandardDataFormat:
             # us then. Just warn for now. We'll validate again for the calculation.
             logging.warning(e)
 
-    def _prepare_output_dir(self, root_dir: Path) -> Path:
-        output_dir = root_dir / self.name
+    def _prepare_output_dir(self, root_dir: Path, is_root: bool) -> Path:
+        output_dir = root_dir
+        if not is_root:
+            output_dir /= self.name
         output_dir.mkdir(parents=True, exist_ok=True)
         return output_dir
 
-    def save_intensities(self, root_dir: Path) -> None:
-        output_dir = self._prepare_output_dir(root_dir)
+    def _save_intensities(self, root_dir: Path, is_root: bool = False) -> None:
+        def add_metadata(intensities: pd.DataFrame):
+            df = intensities.join(self.tech_metadata)
+            assert len(df) == len(intensities)
+            cols = self.tech_metadata.columns.to_list() + intensities.columns.to_list()
+            return df.loc[:, cols]
+
+        output_dir = self._prepare_output_dir(root_dir, is_root)
 
         if not self.base_intensities.empty:
-            self.base_intensities.to_csv(output_dir / "intensities.csv")
+            add_metadata(self.base_intensities).to_csv(output_dir / "intensities.csv")
         for year, intensities in self.intensities_yearly.items():
-            intensities.to_csv(output_dir / f"intensities_{year}.csv")
+            add_metadata(intensities).to_csv(output_dir / f"intensities_{year}.csv")
 
         for sdf in self.children.values():
-            sdf.save_intensities(output_dir)
+            sdf._save_intensities(output_dir)
 
-    def save_indicators(self, root_dir: Path) -> None:
-        output_dir = self._prepare_output_dir(root_dir)
+    def save_intensities(self, root_dir: Path) -> None:
+        self._save_intensities(root_dir, is_root=True)
+
+    def _save_indicators(self, root_dir: Path, is_root: bool = False) -> None:
+        output_dir = self._prepare_output_dir(root_dir, is_root)
 
         if not self.base_indicators.empty:
             self.base_indicators.to_csv(output_dir / "indicators.csv")
@@ -170,16 +181,22 @@ class StandardDataFormat:
             indicators.to_csv(output_dir / f"indicators_{year}.csv")
 
         for sdf in self.children.values():
-            sdf.save_indicators(output_dir)
+            sdf._save_indicators(output_dir)
 
-    def save_targets(self, root_dir: Path) -> None:
-        output_dir = self._prepare_output_dir(root_dir)
+    def save_indicators(self, root_dir: Path) -> None:
+        self._save_indicators(root_dir, is_root=True)
+
+    def _save_targets(self, root_dir: Path, is_root: bool = False) -> None:
+        output_dir = self._prepare_output_dir(root_dir, is_root)
 
         if self.targets is not None:
             self.targets.to_csv(output_dir / "targets.csv")
         else:
             for sdf in self.children.values():
-                sdf.save_targets(output_dir)
+                sdf._save_targets(output_dir)
+
+    def save_targets(self, root_dir: Path) -> None:
+        self._save_targets(root_dir, is_root=True)
 
     def save(self, root_dir: Path) -> None:
         self.save_intensities(root_dir)
@@ -193,8 +210,8 @@ def load(input_dir: Path) -> StandardDataFormat:
     intensities_reader = IntensitiesReader()
     indicators_reader = IndicatorsReader()
 
-    def dfs(root: Path) -> StandardDataFormat | None:
-        sub_directories = list(filter(lambda p: p.is_dir(), root.iterdir()))
+    def dfs(node: Path, is_root: bool) -> StandardDataFormat | None:
+        sub_directories = list(filter(lambda p: p.is_dir(), node.iterdir()))
 
         base_intensities: pd.DataFrame | None = None
         intensities_yearly: dict[Year, pd.DataFrame] = {}
@@ -203,7 +220,7 @@ def load(input_dir: Path) -> StandardDataFormat:
         targets: pd.DataFrame | None = None
         children: dict[str, StandardDataFormat] = {}
 
-        files = filter(lambda f: f.is_file(), root.iterdir())
+        files = filter(lambda f: f.is_file(), node.iterdir())
         for file in files:
             if match := intensities_reader.file_pattern.match(file.name):
                 year = match.group(1)
@@ -225,7 +242,7 @@ def load(input_dir: Path) -> StandardDataFormat:
                 targets = targets_reader.read(file)
 
         for sub_directory in sub_directories:
-            leaf = dfs(sub_directory)
+            leaf = dfs(sub_directory, False)
             if leaf is not None:
                 children[sub_directory.name] = leaf
 
@@ -237,7 +254,7 @@ def load(input_dir: Path) -> StandardDataFormat:
 
         # Ignore leaves with no targets specified
         if targets is None and not sub_directories:
-            logging.warning(f"No targets found in {root.name}. Ignoring.")
+            logging.warning(f"No targets found in {node.name}. Ignoring.")
             return None
         else:
             # *Move* metadata from all intensity frames into tech_metadata
@@ -255,7 +272,7 @@ def load(input_dir: Path) -> StandardDataFormat:
                 intensities.drop(columns=tech_metadata_cols, inplace=True)
 
             return StandardDataFormat(
-                name=root.name,
+                name="/" if is_root else node.name,
                 base_intensities=base_intensities,
                 intensities_yearly=intensities_yearly,
                 base_indicators=base_indicators,
@@ -265,6 +282,6 @@ def load(input_dir: Path) -> StandardDataFormat:
                 tech_metadata=tech_metadata,
             )
 
-    root_dfs = dfs(input_dir)
+    root_dfs = dfs(input_dir, True)
     assert root_dfs is not None
     return root_dfs

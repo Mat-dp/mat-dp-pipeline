@@ -1,6 +1,6 @@
-# ScalingTest processed into ProcesableInput
+# ScalingTest processed into ProcessableInput
 
-## ScalingTest -- 2010
+## / -- 2010
 ### Intensities
 ```
                    Steel  Wood
@@ -24,7 +24,7 @@ Tool      Hammer       1.0
           Pliers      10.0
 ```
 
-## ScalingTest -- 2011
+## / -- 2011
 ### Intensities
 ```
                    Steel  Wood
@@ -48,7 +48,7 @@ Tool      Hammer       2.0
           Pliers      20.0
 ```
 
-## ScalingTest -- 2020
+## / -- 2020
 ### Intensities
 ```
                    Steel  Wood

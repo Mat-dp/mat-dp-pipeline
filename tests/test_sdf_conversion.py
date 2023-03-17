@@ -38,7 +38,7 @@ def to_markdown(output: TextIO, path: Path, year: sdf.Year, inpt: ProcessableInp
 
 
 def process_sdf_to_markdown(root: Path, output: TextIO):
-    output.write(f"# {root.name} processed into ProcesableInput\n")
+    output.write(f"# {root.name} processed into ProcessableInput\n")
     for path, sparse_years_input in flatten_hierarchy(sdf.load(root)):
         for path, year, inpt in to_processable_input(path, sparse_years_input):
             to_markdown(output, path, year, inpt)
@@ -80,8 +80,6 @@ def test_hierarchy(data_path, test_name: str):
 def test_failure_new_tech_in_yearly_file(data_path):
     with pytest.raises(
         ValueError,
-        match=re.escape(
-            "Invalid_YearlyFileWithNewTech: Yearly file (2020) introduces new items!"
-        ),
+        match=re.escape("/: Yearly file (2020) introduces new items!"),
     ):
         list(flatten_hierarchy(sdf.load(data_path("Invalid_YearlyFileWithNewTech"))))
