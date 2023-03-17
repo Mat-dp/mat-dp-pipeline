@@ -184,7 +184,7 @@ class StandardDataFormat:
             sdf._save_indicators(output_dir)
 
     def save_indicators(self, root_dir: Path) -> None:
-        self._save_intensities(root_dir, is_root=True)
+        self._save_indicators(root_dir, is_root=True)
 
     def _save_targets(self, root_dir: Path, is_root: bool = False) -> None:
         output_dir = self._prepare_output_dir(root_dir, is_root)
@@ -196,7 +196,7 @@ class StandardDataFormat:
                 sdf._save_targets(output_dir)
 
     def save_targets(self, root_dir: Path) -> None:
-        self._save_intensities(root_dir, is_root=True)
+        self._save_targets(root_dir, is_root=True)
 
     def save(self, root_dir: Path) -> None:
         self.save_intensities(root_dir)
