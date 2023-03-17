@@ -38,7 +38,7 @@ def to_markdown(output: TextIO, path: Path, year: sdf.Year, inpt: ProcessableInp
 
 
 def process_sdf_to_markdown(root: Path, output: TextIO):
-    output.write(f"# {root.name} processed into ProcesableInput\n")
+    output.write(f"# {root.name} processed into ProcessableInput\n")
     for path, sparse_years_input in flatten_hierarchy(sdf.load(root)):
         for path, year, inpt in to_processable_input(path, sparse_years_input):
             to_markdown(output, path, year, inpt)
