@@ -12,6 +12,7 @@ class AbstractCountrySet:
     regions: list[str] = field(default_factory=list)
     sub_regions: list[str] = field(default_factory=list)
     intermediate_regions: list[str] = field(default_factory=list)
+    custom_countries: list[str] = field(default_factory=list)
     _all_countries: list[str] = field(init=False, repr=False)
 
     def __init_subclass__(cls, *, country_code_df: pd.DataFrame) -> None:
@@ -59,7 +60,11 @@ class AbstractCountrySet:
                         f"Intermediate region {intermediate_region} not found"
                     )
                 total_countries += rel_countries
-            self._all_countries = total_countries
+
+            for custom_country in self.custom_countries:
+                total_countries.append(custom_country)
+
+            self._all_countries = list(set(total_countries))
         return self._all_countries
 
 
@@ -120,7 +125,8 @@ country_sets: CountrySets = {
 }
 
 from pprint import pprint
-pprint(create_country_to_path(country_sets))
+
+create_country_to_path(country_sets)
 
 names_to_paths = {
     "The north americas": Path("/The north americas"),
@@ -153,7 +159,56 @@ class MatDpTargetsSource:
         raise NotImplementedError
 
 
-int_source = MatDpIntensitiesSource(Path("Material_intensities_database.xlsx"))
-target_source = MatDpTargetsSource(
-    Path("examples/results_1.5deg.csv"), int_source.country_to_path
+# int_source = MatDpIntensitiesSource(Path("Material_intensities_database.xlsx"))
+# target_source = MatDpTargetsSource(
+#     Path("examples/results_1.5deg.csv"), int_source.country_to_path
+# )
+
+
+mat_dp_names_to_paths = {
+    "General": "/",
+    "North America": "/North America",
+    "Canada": "/North America/Canada",
+    "Central and South America": "/Central and South America",
+    "CHL": "/Central and South America/Chile",
+    "Africa": "/Africa",
+    "Europe": "/Europe",
+    "Middle East and Central Asia": "/Middle East and Central Asia",
+    "South and East Asia": "/South and East Asia",
+    "Oceania": "/Oceania",
+}
+
+mat_dp_country_sets: CountrySets = {
+    "North America": CountrySet(sub_regions=["Northern America"]),
+    "Central and South America": CountrySet(
+        sub_regions=["Latin America and the Caribbean"]
+    ),
+    "Africa": CountrySet(regions=["Africa"], custom_countries=["Africa"]),
+    "Europe": CountrySet(regions=["Europe"]),
+    "Middle East and Central Asia": CountrySet(
+        sub_regions=["Western Asia", "Central Asia"]
+    ),
+    "South and East Asia": CountrySet(
+        sub_regions=["Eastern Asia", "Southern Asia", "South-eastern Asia"]
+    ),
+    "Oceania": CountrySet(regions=["Oceania"]),
+}
+
+from pprint import pprint
+
+pprint(create_country_to_path(mat_dp_country_sets))
+
+
+def countries_not_in_country_to_path(
+    country_to_path: dict[str, Path], countries: pd.DataFrame
+):
+    full_set = set(countries["name"])
+    new_set = set(country_to_path.keys())
+    return full_set - new_set
+
+
+print(
+    countries_not_in_country_to_path(
+        create_country_to_path(mat_dp_country_sets), countries
+    )
 )
