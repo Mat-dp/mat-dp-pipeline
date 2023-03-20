@@ -7,10 +7,13 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import pydantic
 
 from mat_dp_pipeline.common import FileOrPath
 
 Year = int
+
+SDF_METADATA_FILE_NAME = "metadata.json"
 
 
 def validate_tech_units(tech_metadata: pd.DataFrame) -> None:
@@ -88,6 +91,21 @@ class IndicatorsReader(InputReader):
         )
 
 
+class SDFMetadata(pydantic.BaseModel):
+    """Metadata of the Standard Data Format.
+
+    Args:
+        main_label (str): Description of what the path in the SDF represents. Defaults to "Location"
+        tail_labels (list[str]):
+            Names of the lowest levels in the SDF. If none are provided, the whole
+            path is described by `main_label`. If provided, for example -- ["Scenario", "Parameter"],
+            it means that the lowest levels in the SDF refer to a name of a Scenario and a Parameter.
+    """
+
+    main_label: str = "Location"
+    tail_labels: list[str] = []
+
+
 @dataclass(frozen=True, eq=False, order=False)
 class StandardDataFormat:
     name: str
@@ -102,6 +120,8 @@ class StandardDataFormat:
     children: dict[str, "StandardDataFormat"]
 
     tech_metadata: pd.DataFrame
+
+    metadata: SDFMetadata
 
     def __post_init__(self):
         self.validate()
@@ -198,10 +218,15 @@ class StandardDataFormat:
     def save_targets(self, root_dir: Path) -> None:
         self._save_targets(root_dir, is_root=True)
 
+    def save_metadata(self, root_dir: Path) -> None:
+        with open(root_dir / SDF_METADATA_FILE_NAME, "w") as f:
+            f.write(self.metadata.json())
+
     def save(self, root_dir: Path) -> None:
         self.save_intensities(root_dir)
         self.save_indicators(root_dir)
         self.save_targets(root_dir)
+        self.save_metadata(root_dir)
 
 
 def load(input_dir: Path) -> StandardDataFormat:
@@ -209,6 +234,8 @@ def load(input_dir: Path) -> StandardDataFormat:
     targets_reader = TargetsReader()
     intensities_reader = IntensitiesReader()
     indicators_reader = IndicatorsReader()
+
+    metadata_file = Path(input_dir / SDF_METADATA_FILE_NAME)
 
     def dfs(node: Path, is_root: bool) -> StandardDataFormat | None:
         sub_directories = list(filter(lambda p: p.is_dir(), node.iterdir()))
@@ -271,6 +298,11 @@ def load(input_dir: Path) -> StandardDataFormat:
             for intensities in filter(lambda df: not df.empty, all_intensities):
                 intensities.drop(columns=tech_metadata_cols, inplace=True)
 
+            if is_root and metadata_file.exists():
+                metadata = SDFMetadata.parse_file(metadata_file)
+            else:
+                metadata = SDFMetadata()
+
             return StandardDataFormat(
                 name="/" if is_root else node.name,
                 base_intensities=base_intensities,
@@ -280,6 +312,7 @@ def load(input_dir: Path) -> StandardDataFormat:
                 targets=targets,
                 children=children,
                 tech_metadata=tech_metadata,
+                metadata=metadata,
             )
 
     root_dfs = dfs(input_dir, True)

@@ -10,7 +10,7 @@ from mat_dp_pipeline.pipeline.calculation import ProcessedOutput, calculate
 from mat_dp_pipeline.pipeline.common import ProcessableInput, SparseYearsInput
 from mat_dp_pipeline.pipeline.flatten_hierarchy import flatten_hierarchy
 from mat_dp_pipeline.pipeline.sparse_to_processable_input import to_processable_input
-from mat_dp_pipeline.sdf import StandardDataFormat, Year
+from mat_dp_pipeline.sdf import SDFMetadata, StandardDataFormat, Year
 
 
 @dataclass(frozen=True)
@@ -28,10 +28,18 @@ class PipelineOutput:
     _indicators: set[str]
     _tech_metadata: pd.DataFrame
 
-    def __init__(self, data: list[LabelledOutput], tech_metadata: pd.DataFrame):
+    metadata: SDFMetadata
+
+    def __init__(
+        self,
+        data: list[LabelledOutput],
+        tech_metadata: pd.DataFrame,
+        metadata: SDFMetadata,
+    ):
         self._by_year = defaultdict(dict)
         self._by_path = defaultdict(dict)
         self._tech_metadata = tech_metadata
+        self.metadata = metadata
 
         if data:
             # We know from the computation that each LabelledOutput has the same set of indicators
@@ -160,4 +168,4 @@ def pipeline(sdf: StandardDataFormat) -> PipelineOutput:
             .last()
         )
 
-    return PipelineOutput(processed, tech_metadata)
+    return PipelineOutput(processed, tech_metadata=tech_metadata, metadata=sdf.metadata)

@@ -35,7 +35,7 @@ def main():
         sdf.save(args.sdf_output)
 
     output = pipeline(sdf)
-    App(output, ["Parameter"]).serve()
+    App(output).serve()
 
 
 if __name__ == "__main__":

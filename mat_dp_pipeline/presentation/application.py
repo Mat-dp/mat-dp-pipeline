@@ -67,16 +67,26 @@ class App:
     dash_app: Dash
     outputs: PipelineOutput
 
-    def __init__(self, outputs: PipelineOutput, path_leaf_split: list[str]):
+    def __init__(
+        self,
+        outputs: PipelineOutput,
+        main_label: str | None = None,
+        tail_labels: list[str] | None = None,
+    ):
         self.dash_app = Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
         self.outputs = outputs
         self.indicators = sorted(self.outputs.indicators)
         self.paths = sorted(self.outputs.by_path.keys())
 
-        self.path_leaf_split = path_leaf_split
+        self.tail_labels = (
+            tail_labels if tail_labels is not None else outputs.metadata.tail_labels
+        )
+        self.main_label = (
+            main_label if main_label is not None else outputs.metadata.main_label
+        )
 
-        path_inputs = [Input("country", "value")] + [
-            Input(f"dropdown_{i}", "value") for i in range(len(self.path_leaf_split))
+        path_inputs = [Input("main", "value")] + [
+            Input(f"dropdown_{i}", "value") for i in range(len(self.tail_labels))
         ]
         self.register_callback(
             self.render_tab_content,
@@ -85,14 +95,14 @@ class App:
             path_inputs,
         )
 
-    def _country_dropdown(self) -> dcc.Dropdown:
+    def _main_dropdown(self) -> dcc.Dropdown:
         """
         * Trim the lowest common ancestor from all the paths' labels (not values!)
-        * Trim the lowest levels' bits (as defined by self.path_leaf_split) - these will
+        * Trim the lowest levels' bits (as defined by self.tail_labels) - these will
           form other drop downs
         """
         lowest_common_ancestor = os.path.commonpath(self.paths)
-        levels_to_trim = len(self.path_leaf_split)
+        levels_to_trim = len(self.tail_labels)
         if levels_to_trim:
             paths = sorted({Path(*p.parts[:-levels_to_trim]) for p in self.paths})
         else:
@@ -118,12 +128,12 @@ class App:
                 }
             )
 
-        return dcc.Dropdown(options=options, id="country")
+        return dcc.Dropdown(options=options, id="main")
 
     def _leaf_dropdowns(self) -> list[tuple[str, dcc.Dropdown]]:
-        levels_to_trim = len(self.path_leaf_split)
+        levels_to_trim = len(self.tail_labels)
         dropdowns = []
-        for i, category in enumerate(self.path_leaf_split):
+        for i, category in enumerate(self.tail_labels):
             # Take only a set of parts of the paths on the lower levels,
             # starting from the highest one, moving towards to the leaf
             paths = sorted(
@@ -142,7 +152,7 @@ class App:
                 html.Hr(),
                 html.P("Choose appropriate options", className="lead"),
                 html.Hr(),
-                html.Div([html.Label("Country"), self._country_dropdown()]),
+                html.Div([html.Label(self.main_label), self._main_dropdown()]),
                 *leaf_dropdowns,
                 # # Hidden input with full path. Filled and used by the callbacks
                 # dcc.Input(type="hidden", id="path", value=""),

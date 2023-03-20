@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
+from typing import ClassVar
 
 
 class BaseSource(ABC):
@@ -13,18 +14,19 @@ class BaseSource(ABC):
 
 
 class IntensitiesSource(BaseSource):
-    base_file_name = "intensities.csv"
+    base_file_name: str = "intensities.csv"
 
     def year_file_name_maker(self, year: int):
         return f"intensities_{year}.csv"
 
 
 class TargetsSource(BaseSource):
-    file_name = "targets.csv"
+    file_name: str = "targets.csv"
+    tail_labels: ClassVar[list[str]] = []
 
 
 class IndicatorsSource(BaseSource):
-    base_file_name = "indicators.csv"
+    base_file_name: str = "indicators.csv"
 
     def year_file_name_maker(self, year: int):
         return f"indicators_{year}.csv"
