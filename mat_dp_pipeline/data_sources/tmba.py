@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import ClassVar
 
 import pandas as pd
 
@@ -27,6 +28,8 @@ class TMBATargetsSource(TargetsSource):
     _parameter_to_category: dict[str, str]
     _variable_to_specific: dict[str, str | None]
 
+    tail_labels: ClassVar[list[str]] = ["Parameter"]
+
     def __init__(
         self,
         target_csv: Path,
@@ -46,7 +49,6 @@ class TMBATargetsSource(TargetsSource):
     def __call__(self, output_dir: Path) -> None:
         targets = pd.read_csv(self._targets_csv)
         targets = targets[targets["parameter"].isin(self._targets_parameters)]
-        # TODO: drop columns which are 1) not years, 2) not in defined groupings - like below - scenario
         targets = (
             targets.drop(columns=[targets.columns[0], "scenario"])
             .rename(columns={"variable": "Specific"})
