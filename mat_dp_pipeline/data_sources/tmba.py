@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import ClassVar
+from typing import ClassVar, Final
 
 import pandas as pd
 
@@ -12,6 +12,7 @@ from mat_dp_pipeline.data_sources.country_sets.source_with_countries import (
 PARAMETER_TO_CATEGORY = {
     "Power Generation (Aggregate)": "Power plant",
     "Power Generation Capacity (Aggregate)": "Power plant",
+    "New Power Generation Capacity (Aggregate)": "Power plant",
 }
 
 # From targets' "variable" to intensities "specific" name(s)
@@ -30,6 +31,7 @@ class TMBATargetsSource(TargetsSource):
     _targets_parameters: list[str]
     _parameter_to_category: dict[str, str]
     _variable_to_specific: dict[str, str | None]
+    _grouping: Final[tuple[str, ...]] = ("country", "parameter")
 
     tail_labels: ClassVar[list[str]] = ["Parameter"]
 
@@ -72,8 +74,7 @@ class TMBATargetsSource(TargetsSource):
                     pattern, replacement
                 )
 
-        # TODO: move this. to __init__?
-        grouping = ["country", "parameter"]
+        grouping = list(self._grouping)  # list needed
         for key, targets_frame in targets.groupby(grouping):
             if key[0] == "NM":
                 # Special case for namibia, as we override alpha 2
@@ -85,5 +86,5 @@ class TMBATargetsSource(TargetsSource):
             location_dir = output_dir / path.relative_to("/")
             location_dir.mkdir(exist_ok=True, parents=True)
             targets_frame.drop(columns=grouping).to_csv(
-                location_dir / "targets.csv", index=False
+                location_dir / self.file_name, index=False
             )
