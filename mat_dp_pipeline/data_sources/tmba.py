@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import ClassVar
+from typing import ClassVar, Final
 
 import pandas as pd
 
@@ -27,6 +27,7 @@ class TMBATargetsSource(TargetsSource):
     _targets_parameters: list[str]
     _parameter_to_category: dict[str, str]
     _variable_to_specific: dict[str, str | None]
+    _grouping: Final[tuple[str, ...]] = ("country", "parameter")
 
     tail_labels: ClassVar[list[str]] = ["Parameter"]
 
@@ -66,15 +67,14 @@ class TMBATargetsSource(TargetsSource):
                     pattern, replacement
                 )
 
-        # TODO: move this. to __init__?
-        grouping = ["country", "parameter"]
+        grouping = list(self._grouping)  # list needed
         for key, targets_frame in targets.groupby(grouping):
-            # TODO: make some assertion that key[0] is a country. In __init__?
-            path = (location_to_path(key[0]),) + key[1:]
-            path = Path(*path)
+            # We know that _grouping[0] is country
+            path_parts = (location_to_path(key[0]),) + key[1:]
+            path = Path(*path_parts)
 
             location_dir = output_dir / path
             location_dir.mkdir(exist_ok=True, parents=True)
             targets_frame.drop(columns=grouping).to_csv(
-                location_dir / "targets.csv", index=False
+                location_dir / self.file_name, index=False
             )
