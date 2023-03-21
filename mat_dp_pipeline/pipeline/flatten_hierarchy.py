@@ -98,8 +98,7 @@ def flatten_hierarchy(
             yield from dfs(directory, overlaid, label / name)
 
         # Yield only leaves
-        if not sdf.children:
-            assert sdf.targets is not None
+        if not sdf.children and sdf.targets is not None:
             overlaid.targets = sdf.targets
             # Trim tech_meta to the techs specified in targets
             overlaid.tech_metadata = overlaid.tech_metadata.reindex(

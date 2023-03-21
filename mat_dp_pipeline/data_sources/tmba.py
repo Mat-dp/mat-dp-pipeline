@@ -61,7 +61,6 @@ class TMBATargetsSource(TargetsSource):
             .rename(columns={"variable": "Specific"})
             .dropna()
         )
-
         category = targets["parameter"].map(self._parameter_to_category)
         targets.insert(0, "Category", category)
         for pattern, replacement in self._variable_to_specific.items():
