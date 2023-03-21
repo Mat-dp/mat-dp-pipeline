@@ -20,7 +20,6 @@ mat_dp_names_to_paths = {
     "Middle East and Central Asia": "/Middle East and Central Asia",
     "South and East Asia": "/South and East Asia",
     "Oceania": "/Oceania",
-    "NM": "/Africa/Namibia",
 }
 
 

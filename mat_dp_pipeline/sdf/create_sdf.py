@@ -71,7 +71,7 @@ def create_sdf(
                 if main_label is not None:
                     if isinstance(main_label, str):
                         metadata.main_label = main_label
-                    elif main_label is not None and main_label.main_label is not None:
+                    elif main_label.main_label is not None:
                         metadata.main_label = main_label.main_label
                 else:
                     if intensities.main_label is not None:
