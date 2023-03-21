@@ -15,6 +15,31 @@ class CustomCountry:
     alpha_3: Optional[str]
 
 
+def _append_with_regions(
+    regions: list[str],
+    region_key: str,
+    country_code_df: pd.DataFrame,
+    identifier: Identifier,
+    total_countries: list[str],
+    country_names: list[str],
+):
+    for region in regions:
+        rel_countries = list(
+            country_code_df[country_code_df[region_key] == region][identifier.value]
+        )
+
+        if len(rel_countries) == 0:
+            raise ValueError(f"{region_key} {region} not found")
+        total_countries += rel_countries
+
+        rel_names = list(
+            country_code_df[country_code_df[region_key] == region][
+                Identifier.country_name.value
+            ]
+        )
+        country_names += rel_names
+
+
 @dataclass
 class CountrySet:
     countries: list[str] = field(default_factory=list)
@@ -28,7 +53,6 @@ class CountrySet:
 
     def all_countries(self, country_code_df: pd.DataFrame, identifier: Identifier):
         if identifier not in self._all_countries:
-            identifier_value: str = identifier.value
             total_countries = []
             country_names = []
             available_countries = list(country_code_df[Identifier.country_name.value])
@@ -38,59 +62,30 @@ class CountrySet:
                 total_countries.append(country)
                 country_names.append(country)
 
-            for region in self.regions:
-                rel_countries = list(
-                    country_code_df[country_code_df["region"] == region][
-                        identifier_value
-                    ]
-                )
-
-                if len(rel_countries) == 0:
-                    raise ValueError(f"Region {region} not found")
-                total_countries += rel_countries
-
-                rel_names = list(
-                    country_code_df[country_code_df["region"] == region][
-                        Identifier.country_name.value
-                    ]
-                )
-                country_names += rel_names
-
-            for sub_region in self.sub_regions:
-                rel_countries = list(
-                    country_code_df[country_code_df["sub-region"] == sub_region][
-                        identifier_value
-                    ]
-                )
-                if len(rel_countries) == 0:
-                    raise ValueError(f"Sub region {sub_region} not found")
-                total_countries += rel_countries
-
-                rel_names = list(
-                    country_code_df[country_code_df["sub-region"] == sub_region][
-                        Identifier.country_name.value
-                    ]
-                )
-                country_names += rel_names
-
-            for intermediate_region in self.intermediate_regions:
-                rel_countries = list(
-                    country_code_df[
-                        country_code_df["intermediate-region"] == intermediate_region
-                    ][identifier_value]
-                )
-                if len(rel_countries) == 0:
-                    raise ValueError(
-                        f"Intermediate region {intermediate_region} not found"
-                    )
-                total_countries += rel_countries
-
-                rel_names = list(
-                    country_code_df[
-                        country_code_df["intermediate-region"] == intermediate_region
-                    ][Identifier.country_name.value]
-                )
-                country_names += rel_names
+            _append_with_regions(
+                self.regions,
+                "region",
+                country_code_df,
+                identifier,
+                total_countries,
+                country_names,
+            )
+            _append_with_regions(
+                self.sub_regions,
+                "sub-region",
+                country_code_df,
+                identifier,
+                total_countries,
+                country_names,
+            )
+            _append_with_regions(
+                self.intermediate_regions,
+                "intermediate-region",
+                country_code_df,
+                identifier,
+                total_countries,
+                country_names,
+            )
 
             for custom_country in self.custom_countries:
                 if identifier == Identifier.country_name:
