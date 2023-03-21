@@ -12,7 +12,7 @@ from .standard_data_format import (
 )
 
 TailLabels = list[str] | type[ds.TargetsSource] | None
-MainLabels = str | type[ds.TargetsSource] | None
+MainLabels = str | type[ds.IntensitiesSource] | type[ds.IndicatorsSource] | None
 
 
 @overload
@@ -69,13 +69,15 @@ def create_sdf(
                 # sdf load
                 metadata = SDFMetadata()
                 if main_label is not None:
-                    metadata.main_label = (
-                        main_label
-                        if isinstance(main_label, str)
-                        else main_label.main_label
-                    )
-                elif has_single_target_source:
-                    metadata.main_label = targets.main_label
+                    if isinstance(main_label, str):
+                        metadata.main_label = main_label
+                    elif main_label is not None and main_label.main_label is not None:
+                        metadata.main_label = main_label.main_label
+                else:
+                    if intensities.main_label is not None:
+                        metadata.main_label = intensities.main_label
+                    elif indicators.main_label is not None:
+                        metadata.main_label = indicators.main_label
 
                 if tail_labels is not None:
                     metadata.tail_labels = (
