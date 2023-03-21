@@ -12,6 +12,7 @@ from .standard_data_format import (
 )
 
 TailLabels = list[str] | type[ds.TargetsSource] | None
+MainLabels = str | type[ds.TargetsSource] | None
 
 
 @overload
@@ -20,7 +21,7 @@ def create_sdf(
     intensities: ds.IntensitiesSource,
     indicators: ds.IndicatorsSource,
     targets: ds.TargetsSource | list[ds.TargetsSource],
-    main_label: str | None = None,
+    main_label: MainLabels = None,
     tail_labels: TailLabels = None,
 ) -> StandardDataFormat:
     ...
@@ -30,7 +31,7 @@ def create_sdf(
 def create_sdf(
     source: Path | str,
     *,
-    main_label: str | None = None,
+    main_label: MainLabels = None,
     tail_labels: TailLabels = None,
 ) -> StandardDataFormat:
     ...
@@ -42,7 +43,7 @@ def create_sdf(
     intensities: ds.IntensitiesSource | None = None,
     indicators: ds.IndicatorsSource | None = None,
     targets: ds.TargetsSource | list[ds.TargetsSource] | None = None,
-    main_label: str | None = None,
+    main_label: MainLabels = None,
     tail_labels: TailLabels = None,
 ) -> StandardDataFormat:
     if source:
@@ -67,8 +68,14 @@ def create_sdf(
                 # and save it to the `path` location so that it can be loaded as part of the
                 # sdf load
                 metadata = SDFMetadata()
-                if main_label:
-                    metadata.main_label = main_label
+                if main_label is not None:
+                    metadata.main_label = (
+                        main_label
+                        if isinstance(main_label, str)
+                        else main_label.main_label
+                    )
+                elif has_single_target_source:
+                    metadata.main_label = targets.main_label
 
                 if tail_labels is not None:
                     metadata.tail_labels = (
