@@ -139,11 +139,6 @@ class StandardDataFormat:
                         f"{self.name}: Yearly file ({year}) introduces new items!"
                     )
 
-        if (self.targets is not None) == (len(self.children) > 0):
-            raise ValueError(
-                f"{self.name}: SDF must either have children in the hierarchy or defined targets (leaf level)"
-            )
-
         if self.base_intensities is None and self.intensities_yearly is not None:
             raise ValueError(
                 f"{self.name}: No base intensities, while yearly files provided!"
