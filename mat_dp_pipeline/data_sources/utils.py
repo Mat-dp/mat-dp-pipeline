@@ -8,7 +8,7 @@ COUNTRY_MAPPING_CSV = Path(__file__).parent / "country_codes.csv"
 
 @cache
 def default_location_mapping() -> dict[str, Path]:
-    countries = pd.read_csv(COUNTRY_MAPPING_CSV)
+    countries = pd.read_csv(COUNTRY_MAPPING_CSV, keep_default_na=True)
     # replace NaNs with Nones
     countries = countries.where(pd.notnull(countries), None)
 
