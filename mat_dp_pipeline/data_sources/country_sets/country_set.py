@@ -1,14 +1,18 @@
 from dataclasses import dataclass, field
+from typing import Optional
 
 import pandas as pd
 
 from .identifier import Identifier
 
-__all__ = ["CountrySet"]
+__all__ = ["CountrySet", "CustomCountry"]
 
 
-def get_none():
-    return None
+@dataclass
+class CustomCountry:
+    name: str
+    alpha_2: Optional[str]
+    alpha_3: Optional[str]
 
 
 @dataclass
@@ -17,7 +21,7 @@ class CountrySet:
     regions: list[str] = field(default_factory=list)
     sub_regions: list[str] = field(default_factory=list)
     intermediate_regions: list[str] = field(default_factory=list)
-    custom_countries: list[str] = field(default_factory=list)
+    custom_countries: list[CustomCountry] = field(default_factory=list)
     _all_countries: dict[Identifier, list[str]] = field(
         default_factory=dict, init=False, repr=False
     )
@@ -27,7 +31,6 @@ class CountrySet:
             identifier_value: str = identifier.value
             total_countries = []
             available_countries = list(country_code_df[identifier_value])
-            print(available_countries)
             for country in self.countries:
                 if country not in available_countries:
                     raise ValueError(f"Country {country} not found")
@@ -66,7 +69,19 @@ class CountrySet:
                 total_countries += rel_countries
 
             for custom_country in self.custom_countries:
-                total_countries.append(custom_country)
+                if identifier == Identifier.country_name:
+                    total_countries.append(custom_country.name)
+                elif (
+                    identifier == Identifier.alpha_2
+                    and custom_country.alpha_2 is not None
+                ):
+                    total_countries.append(custom_country.alpha_2)
+                elif (
+                    identifier == Identifier.alpha_3
+                    and custom_country.alpha_3 is not None
+                ):
+                    total_countries.append(custom_country.alpha_3)
+
             self._all_countries[identifier] = list(set(total_countries))
             return self._all_countries[identifier]
         else:
