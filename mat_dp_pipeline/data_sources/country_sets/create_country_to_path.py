@@ -1,11 +1,11 @@
+__all__ = ["CountrySets", "create_country_to_path"]
+
 from pathlib import Path
 
 import pandas as pd
 
 from .country_set import CountrySet
 from .identifier import Identifier
-
-__all__ = ["CountrySets", "create_country_to_path"]
 
 CountrySets = dict[str, "CountrySet | CountrySets"]
 

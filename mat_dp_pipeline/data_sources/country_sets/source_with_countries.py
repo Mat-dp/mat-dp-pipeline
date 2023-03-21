@@ -1,3 +1,5 @@
+__all__ = ["SourceWithCountries"]
+
 from pathlib import Path
 from typing import ClassVar, Optional
 
@@ -5,8 +7,6 @@ import pandas as pd
 
 from .create_country_to_path import CountrySets, create_country_to_path
 from .identifier import Identifier
-
-__all__ = ["SourceWithCountries"]
 
 
 class SourceWithCountries:

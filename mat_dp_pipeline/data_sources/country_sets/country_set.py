@@ -1,11 +1,11 @@
+__all__ = ["CountrySet", "CustomCountry"]
+
 from dataclasses import dataclass, field
 from typing import Optional
 
 import pandas as pd
 
 from .identifier import Identifier
-
-__all__ = ["CountrySet", "CustomCountry"]
 
 
 @dataclass
