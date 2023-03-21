@@ -76,6 +76,7 @@ class TMBATargetsSource(TargetsSource):
         grouping = ["country", "parameter"]
         for key, targets_frame in targets.groupby(grouping):
             if key[0] == "NM":
+                # Special case for namibia, as we override alpha 2
                 new_key = "NA"
             else:
                 new_key = key[0]
