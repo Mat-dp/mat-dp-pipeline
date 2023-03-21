@@ -107,6 +107,4 @@ class CountrySet:
             self._all_countries[identifier] = list(
                 set(zip(total_countries, country_names))
             )
-            return self._all_countries[identifier]
-        else:
-            return self._all_countries[identifier]
+        return self._all_countries[identifier]
