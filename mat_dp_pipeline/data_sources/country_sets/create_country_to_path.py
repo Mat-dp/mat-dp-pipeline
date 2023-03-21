@@ -21,7 +21,7 @@ def create_country_to_path(
                 for country in v.all_countries(country_code_df, identifier):
                     if country in final_dict:
                         raise ValueError(
-                            f"Overlapped disjoint set detected for {country}"
+                            f"Overlapped disjoint set detected for {country} location is already {final_dict[country]}"
                         )
                     else:
                         if k == "__root__":
@@ -32,5 +32,5 @@ def create_country_to_path(
                 dfs(v, prefix=prefix + [k])
 
     dfs(country_sets, prefix=[])
-    path_dict = {k: Path(*v) for k, v in final_dict.items()}
+    path_dict = {k: Path(*(["/"] + v)) for k, v in final_dict.items()}
     return path_dict

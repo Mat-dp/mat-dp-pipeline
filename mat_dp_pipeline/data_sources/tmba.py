@@ -8,7 +8,6 @@ from mat_dp_pipeline.data_sources.country_sets.country_set import Identifier
 from mat_dp_pipeline.data_sources.country_sets.source_with_countries import (
     SourceWithCountries,
 )
-from mat_dp_pipeline.data_sources.utils import location_to_path
 
 PARAMETER_TO_CATEGORY = {
     "Power Generation (Aggregate)": "Power plant",
@@ -53,7 +52,6 @@ class TMBATargetsSource(TargetsSource):
         self._country_to_path = country_source.country_to_path(
             identifier=Identifier.alpha_2
         )
-        print(country_source.country_to_path(identifier=Identifier.country_name))
 
     def __call__(self, output_dir: Path) -> None:
         targets = pd.read_csv(self._targets_csv)
@@ -78,15 +76,13 @@ class TMBATargetsSource(TargetsSource):
         # TODO: move this. to __init__?
         grouping = ["country", "parameter"]
         for key, targets_frame in targets.groupby(grouping):
-            # print(self._country_to_path)
             if key[0] == "NM":
                 new_key = "NA"
             else:
                 new_key = key[0]
             path = (self._country_to_path[new_key],) + key[1:]
             path = Path(*path)
-
-            location_dir = output_dir / path
+            location_dir = output_dir / path.relative_to("/")
             location_dir.mkdir(exist_ok=True, parents=True)
             targets_frame.drop(columns=grouping).to_csv(
                 location_dir / "targets.csv", index=False

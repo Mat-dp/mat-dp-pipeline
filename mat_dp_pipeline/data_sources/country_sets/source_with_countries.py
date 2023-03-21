@@ -16,7 +16,7 @@ class SourceWithCountries:
     _names_to_paths: ClassVar[dict[str, Path]]
     _missing_countries: ClassVar[Optional[set[str]]] = None
     country_code_df: ClassVar[pd.DataFrame] = pd.read_csv(
-        Path(__file__).parent / "country_codes.csv"
+        Path(__file__).parent / "country_codes.csv", keep_default_na=False
     )
     main_label: ClassVar[str] = "Country"
 
