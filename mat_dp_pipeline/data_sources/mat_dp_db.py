@@ -14,7 +14,6 @@ mat_dp_names_to_paths = {
     "General": "/",
     "North America": "/North America",
     "Central and South America": "/Central and South America",
-    "CHL": "/Central and South America/Chile",
     "Africa": "/Africa",
     "Europe": "/Europe",
     "Middle East and Central Asia": "/Middle East and Central Asia",
