@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pandas as pd
 
-COUNTRY_MAPPING_CSV = Path(__file__).parent / "country_codes.csv"
+COUNTRY_MAPPING_CSV = Path(__file__).parent / "country_sets" / "country_codes.csv"
 
 
 @cache
