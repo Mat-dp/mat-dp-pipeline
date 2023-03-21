@@ -1,4 +1,3 @@
-import pdb
 from pathlib import Path
 from typing import ClassVar
 
@@ -81,8 +80,6 @@ class TMBATargetsSource(TargetsSource):
         for key, targets_frame in targets.groupby(grouping):
             # print(self._country_to_path)
             if key[0] == "NM":
-                list(self._country_to_path.keys())
-                pdb.set_trace()
                 new_key = "NA"
             else:
                 new_key = key[0]
