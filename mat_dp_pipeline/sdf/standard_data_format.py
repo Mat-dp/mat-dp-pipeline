@@ -274,7 +274,7 @@ def load(input_dir: Path) -> StandardDataFormat:
         )
         base_indicators = pd.DataFrame() if base_indicators is None else base_indicators
 
-        # Ignore leaves with no targets specified
+        # Ignore leaves with nothing specified
         if (
             targets is None
             and base_intensities is None
