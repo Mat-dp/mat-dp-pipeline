@@ -1,6 +1,6 @@
 import tempfile
 from pathlib import Path
-from typing import Type, overload
+from typing import overload
 
 import mat_dp_pipeline.abstract_data_sources as ds
 
@@ -11,7 +11,7 @@ from .standard_data_format import (
     load,
 )
 
-TailLabels = list[str] | Type[ds.TargetsSource] | None
+TailLabels = list[str] | type[ds.TargetsSource] | None
 
 
 @overload
