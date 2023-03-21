@@ -81,5 +81,3 @@ class IntegratedAssessmentModel(TargetsSource):
             targets_frame.drop(columns=grouping).to_csv(
                 location_dir / self.file_name, index=False
             )
-
-

@@ -9,6 +9,7 @@ from mat_dp_pipeline.data_sources.utils import location_to_path
 PARAMETER_TO_CATEGORY = {
     "Power Generation (Aggregate)": "Power plant",
     "Power Generation Capacity (Aggregate)": "Power plant",
+    "New Power Generation Capacity (Aggregate)": "Power plant",
 }
 
 # From targets' "variable" to intensities "specific" name(s)
