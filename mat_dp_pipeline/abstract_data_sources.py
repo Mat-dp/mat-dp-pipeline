@@ -23,6 +23,7 @@ class IntensitiesSource(BaseSource):
 class TargetsSource(BaseSource):
     file_name: str = "targets.csv"
     tail_labels: ClassVar[list[str]] = []
+    main_label: ClassVar[str] = "Location"
 
 
 class IndicatorsSource(BaseSource):
