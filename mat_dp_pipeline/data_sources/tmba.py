@@ -1,9 +1,14 @@
+import pdb
 from pathlib import Path
 from typing import ClassVar
 
 import pandas as pd
 
 from mat_dp_pipeline.abstract_data_sources import TargetsSource
+from mat_dp_pipeline.data_sources.country_sets.country_set import Identifier
+from mat_dp_pipeline.data_sources.country_sets.source_with_countries import (
+    SourceWithCountries,
+)
 from mat_dp_pipeline.data_sources.utils import location_to_path
 
 PARAMETER_TO_CATEGORY = {
@@ -34,6 +39,7 @@ class TMBATargetsSource(TargetsSource):
         self,
         target_csv: Path,
         targets_parameters: list[str],
+        country_source: type[SourceWithCountries],
         parameter_to_category: dict[str, str] | None = None,
         variable_to_specific: dict[str, str | None] | None = None,
     ):
@@ -45,6 +51,10 @@ class TMBATargetsSource(TargetsSource):
         self._variable_to_specific = (
             variable_to_specific if variable_to_specific else VARIABLE_TO_SPECIFIC
         )
+        self._country_to_path = country_source.country_to_path(
+            identifier=Identifier.alpha_2
+        )
+        print(country_source.country_to_path(identifier=Identifier.country_name))
 
     def __call__(self, output_dir: Path) -> None:
         targets = pd.read_csv(self._targets_csv)
@@ -69,8 +79,14 @@ class TMBATargetsSource(TargetsSource):
         # TODO: move this. to __init__?
         grouping = ["country", "parameter"]
         for key, targets_frame in targets.groupby(grouping):
-            # TODO: make some assertion that key[0] is a country. In __init__?
-            path = (location_to_path(key[0]),) + key[1:]
+            # print(self._country_to_path)
+            if key[0] == "NM":
+                list(self._country_to_path.keys())
+                pdb.set_trace()
+                new_key = "NA"
+            else:
+                new_key = key[0]
+            path = (self._country_to_path[new_key],) + key[1:]
             path = Path(*path)
 
             location_dir = output_dir / path

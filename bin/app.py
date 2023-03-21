@@ -26,7 +26,9 @@ def main():
         sdf = create_sdf(
             intensities=ds.MatDPDBIntensitiesSource(args.materials),
             indicators=ds.MatDPDBIndicatorsSource(args.materials),
-            targets=ds.TMBATargetsSource(args.targets, TARGETS_PARAMETERS),
+            targets=ds.TMBATargetsSource(
+                args.targets, TARGETS_PARAMETERS, ds.MatDPDBIntensitiesSource
+            ),
         )
     else:
         sdf = create_sdf(args.sdf_source)
