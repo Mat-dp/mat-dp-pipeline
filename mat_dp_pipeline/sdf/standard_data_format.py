@@ -275,8 +275,13 @@ def load(input_dir: Path) -> StandardDataFormat:
         base_indicators = pd.DataFrame() if base_indicators is None else base_indicators
 
         # Ignore leaves with no targets specified
-        if targets is None and not sub_directories:
-            logging.warning(f"No targets found in {node.name}. Ignoring.")
+        if (
+            targets is None
+            and base_intensities is None
+            and base_indicators is None
+            and not sub_directories
+        ):
+            logging.warning(f"No files found in {node.name}. Ignoring.")
             return None
         else:
             # *Move* metadata from all intensity frames into tech_metadata
