@@ -34,10 +34,9 @@ def x_log_switch():
     )
 
 
-def _years_for_title(data: PipelineOutput, year: int | None) -> str:
+def _years_for_title(year: int | None) -> str:
     if year is None:
-        years = sorted(data.by_year.keys())
-        return f"{years[0]}-{years[-1]}"
+        return "all years"
     else:
         return str(year)
 
@@ -93,7 +92,7 @@ def indicator_by_tech_agg(
     )
     sorted(data.by_year.keys())
     fig.update_layout(
-        title=f"Emissions by technology ({_years_for_title(data, year)})",
+        title=f"Emissions by technology ({_years_for_title(year)})",
         title_font_size=24,
         updatemenus=[x_log_switch()],
         yaxis={"categoryorder": "total ascending"},
@@ -128,7 +127,7 @@ def indicator_by_resource_agg(
     )
     sorted(data.by_year.keys())
     fig.update_layout(
-        title=f"Emissions by resource ({_years_for_title(data, year)})",
+        title=f"Emissions by resource ({_years_for_title(year)})",
         title_font_size=24,
         updatemenus=[x_log_switch()],
     )
@@ -173,7 +172,7 @@ def required_resources_by_tech_agg(
         labels={"value": WEIGHT_UNIT},
     )
     fig.update_layout(
-        title=f"Materials production by technology ({_years_for_title(data, year)})",
+        title=f"Materials production by technology ({_years_for_title(year)})",
         title_font_size=24,
         updatemenus=[x_log_switch()],
         yaxis={"categoryorder": "total ascending"},
@@ -197,7 +196,7 @@ def required_resources_agg(data: PipelineOutput, path: Path, year: int | None):
         labels={"x": WEIGHT_UNIT},
     )
     fig.update_layout(
-        title=f"Materials production ({_years_for_title(data, year)})",
+        title=f"Materials production ({_years_for_title(year)})",
         title_font_size=24,
         updatemenus=[x_log_switch()],
         yaxis={"categoryorder": "total ascending"},
