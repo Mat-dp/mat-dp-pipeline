@@ -92,6 +92,7 @@ class App:
             self.render_tab_content,
             Output("tab-content", "children"),
             Input("tabs", "active_tab"),
+            Input("year", "value"),
             path_inputs,
         )
 
@@ -146,6 +147,9 @@ class App:
         leaf_dropdowns = [
             html.Div([html.Label(label), dd]) for label, dd in self._leaf_dropdowns()
         ]
+        year_options = ["All"] + [str(y) for y in self.outputs.by_year.keys()]
+        year_dropdown = dcc.Dropdown(options=year_options, id="year", value="All")
+
         sidebar = html.Div(
             [
                 html.H2("Menu", className="display-4"),
@@ -154,8 +158,7 @@ class App:
                 html.Hr(),
                 html.Div([html.Label(self.main_label), self._main_dropdown()]),
                 *leaf_dropdowns,
-                # # Hidden input with full path. Filled and used by the callbacks
-                # dcc.Input(type="hidden", id="path", value=""),
+                html.Div([html.Label("Year"), year_dropdown]),
             ],
             style=SIDEBAR_STYLE,
         )
@@ -177,34 +180,40 @@ class App:
 
         return html.Div([sidebar, content])
 
-    def render_tab_content(self, active_tab: str, *path_parts):
+    def render_tab_content(self, active_tab: str, year: str, *path_parts):
         # Path has missing levels - do not update
         if any(not p for p in path_parts):
             raise PreventUpdate
+
+        year_i = None if year == "All" else int(year)
 
         path = Path(*path_parts)
         is_indicator_tab = active_tab.startswith("ind_")
         if is_indicator_tab:
             ind_idx = int(active_tab.split("_")[1])
             indicator = self.indicators[ind_idx]
-            plots = self.generate_indicator_graphs(path, indicator)
+            plots = self.generate_indicator_graphs(path, indicator, year_i)
         else:  # materials tab
-            plots = self.generate_materials_graphs(path)
+            plots = self.generate_materials_graphs(path, year_i)
 
         return [dcc.Graph(figure=fig, style={"height": "25vh"}) for fig in plots]
 
-    def generate_materials_graphs(self, path: Path) -> list[go.Figure]:
+    def generate_materials_graphs(
+        self, path: Path, year: int | None
+    ) -> list[go.Figure]:
         return [
             required_resources_over_years(self.outputs, path),
-            required_resources_by_tech_agg(self.outputs, path),
-            required_resources_agg(self.outputs, path),
+            required_resources_by_tech_agg(self.outputs, path, year),
+            required_resources_agg(self.outputs, path, year),
         ]
 
-    def generate_indicator_graphs(self, path: Path, indicator: str) -> list[go.Figure]:
+    def generate_indicator_graphs(
+        self, path: Path, indicator: str, year: int | None
+    ) -> list[go.Figure]:
         return [
             indicator_by_resource_over_years(self.outputs, path, indicator),
-            indicator_by_tech_agg(self.outputs, path, indicator),
-            indicator_by_resource_agg(self.outputs, path, indicator),
+            indicator_by_tech_agg(self.outputs, path, indicator, year),
+            indicator_by_resource_agg(self.outputs, path, indicator, year),
         ]
 
     def register_callback(self, fn, *spec):

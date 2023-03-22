@@ -9,6 +9,7 @@ from mat_dp_pipeline.pipeline import PipelineOutput
 
 IndicatorPlotter = Callable[[PipelineOutput, str, str], go.Figure]
 RequiredResourcesPlotter = Callable[[PipelineOutput, str], go.Figure]
+WEIGHT_UNIT = "Kg"
 
 
 def x_log_switch():
@@ -31,6 +32,13 @@ def x_log_switch():
             ),
         ],
     )
+
+
+def _years_for_title(year: int | None) -> str:
+    if year is None:
+        return "all years"
+    else:
+        return str(year)
 
 
 def indicator_by_resource_over_years(
@@ -61,18 +69,20 @@ def indicator_by_resource_over_years(
 
 
 def indicator_by_tech_agg(
-    data: PipelineOutput, path: Path, indicator: str
+    data: PipelineOutput, path: Path, indicator: str, year: int | None
 ) -> go.Figure:
-    emissions = data.emissions(path, indicator).dropna(how="all").reset_index()
+    if year is None:
+        emissions = data.emissions(path, indicator).reset_index()
+    else:
+        emissions = data[(path, year)].emissions.loc[indicator, :].reset_index()
+
+    emissions = emissions.dropna(how="all")
     emissions["Tech"] = emissions["Category"] + "/" + emissions["Specific"]
     # Emissions will be a data frame with index of Techs and columns Resources
     # The values are individual emissions per given tech/resource
-    emissions = (
-        emissions.drop(columns=["Category", "Specific"])
-        .groupby("Tech")
-        .sum()
-        .drop(columns="Year")
-    )
+    emissions = emissions.drop(columns=["Category", "Specific"]).groupby("Tech").sum()
+    if year is None:
+        emissions.pop("Year")
     fig = px.bar(
         emissions,
         x=emissions.columns,
@@ -80,9 +90,9 @@ def indicator_by_tech_agg(
         labels={"value": indicator},
         color_discrete_sequence=px.colors.qualitative.Alphabet,
     )
-    years = sorted(data.by_year.keys())
+    sorted(data.by_year.keys())
     fig.update_layout(
-        title=f"Emissions by technology ({years[0]}-{years[-1]})",
+        title=f"Emissions by technology ({_years_for_title(year)})",
         title_font_size=24,
         updatemenus=[x_log_switch()],
         yaxis={"categoryorder": "total ascending"},
@@ -91,11 +101,15 @@ def indicator_by_tech_agg(
 
 
 def indicator_by_resource_agg(
-    data: PipelineOutput, path: Path, indicator: str
+    data: PipelineOutput, path: Path, indicator: str, year: int | None
 ) -> go.Figure:
+    if year is None:
+        emissions = data.emissions(path, indicator)
+    else:
+        emissions = data[(path, year)].emissions.loc[indicator, :]
+
     emissions = (
-        data.emissions(path, indicator)
-        .reset_index(drop=True)
+        emissions.reset_index(drop=True)
         .sum()
         .replace(0, np.nan)
         .dropna()
@@ -111,9 +125,9 @@ def indicator_by_resource_agg(
         color="Resource",
         color_discrete_sequence=px.colors.qualitative.Alphabet,
     )
-    years = sorted(data.by_year.keys())
+    sorted(data.by_year.keys())
     fig.update_layout(
-        title=f"Emissions by resource ({years[0]}-{years[-1]})",
+        title=f"Emissions by resource ({_years_for_title(year)})",
         title_font_size=24,
         updatemenus=[x_log_switch()],
     )
@@ -125,17 +139,28 @@ def required_resources_over_years(data: PipelineOutput, path: Path) -> go.Figure
         data.resources(path).groupby("Year").sum().reset_index().set_index("Year")
     )
     materials = materials.loc[:, (materials != 0).any(axis=0)]
-    fig = px.area(materials, labels={"value": "Kg"})  # TODO: !!!! UNITS!!!
+    fig = px.area(materials, labels={"value": WEIGHT_UNIT})
     fig.update_traces(hovertemplate="%{x}: %{y}")
     fig.update_layout(title="Required resources", title_font_size=24)
     return fig
 
 
-def required_resources_by_tech_agg(data: PipelineOutput, path: Path) -> go.Figure:
-    materials = data.resources(path).reset_index()
+def required_resources_by_tech_agg(
+    data: PipelineOutput, path: Path, year: int | None
+) -> go.Figure:
+    if year is None:
+        materials = data.resources(path).reset_index()
+    else:
+        materials = data[(path, year)].required_resources.reset_index()
+
     materials["Tech"] = materials["Category"] + "/" + materials["Specific"]
     materials = materials.drop(columns=["Category", "Specific"])
-    materials = materials.set_index("Year").groupby("Tech").sum()
+
+    if year is None:
+        materials = materials.set_index("Year").groupby("Tech").sum()
+    else:
+        materials = materials.set_index("Tech")
+
     materials = materials.loc[:, (materials != 0).any(axis=0)]
     materials = materials.loc[~(materials == 0).all(axis=1)]
 
@@ -144,11 +169,10 @@ def required_resources_by_tech_agg(data: PipelineOutput, path: Path) -> go.Figur
         x=materials.columns,
         y=materials.index,
         color_discrete_sequence=px.colors.qualitative.Alphabet,
-        labels={"value": "Kg"},  # TODO: !!!! UNITS!!!
+        labels={"value": WEIGHT_UNIT},
     )
-    years = sorted(data.by_year.keys())
     fig.update_layout(
-        title=f"Materials production by technology ({years[0]}-{years[-1]})",
+        title=f"Materials production by technology ({_years_for_title(year)})",
         title_font_size=24,
         updatemenus=[x_log_switch()],
         yaxis={"categoryorder": "total ascending"},
@@ -156,19 +180,23 @@ def required_resources_by_tech_agg(data: PipelineOutput, path: Path) -> go.Figur
     return fig
 
 
-def required_resources_agg(data: PipelineOutput, path: Path):
-    materials = data.resources(path).sum()
+def required_resources_agg(data: PipelineOutput, path: Path, year: int | None):
+    if year is None:
+        materials = data.resources(path).sum()
+    else:
+        materials = data[(path, year)].required_resources.sum()
+
     materials = materials[materials > 0]
-    years = sorted(data.by_year.keys())
+    sorted(data.by_year.keys())
     fig = px.bar(
         materials,
         x=materials,
         y=materials.index,
         color=materials.index,
-        labels={"x": "Kg"},  # TODO: units!!!
+        labels={"x": WEIGHT_UNIT},
     )
     fig.update_layout(
-        title=f"Materials production ({years[0]}-{years[-1]})",
+        title=f"Materials production ({_years_for_title(year)})",
         title_font_size=24,
         updatemenus=[x_log_switch()],
         yaxis={"categoryorder": "total ascending"},
