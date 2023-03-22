@@ -15,10 +15,11 @@ def main():
 
     args = parser.parse_args()
 
-    TARGETS_PARAMETERS = [
+    TMBA_TARGETS_PARAMETERS = [
         "Power Generation (Aggregate)",
         "Power Generation Capacity (Aggregate)",
     ]
+    IAM_TARGETS_PARAMETERS = ["Primary Energy", "Secondary Energy|Electricity"]
 
     if not args.sdf_source:
         # TODO: this is just a quick hacky/demo version of course
@@ -26,8 +27,11 @@ def main():
         sdf = create_sdf(
             intensities=ds.MatDPDBIntensitiesSource(args.materials),
             indicators=ds.MatDPDBIndicatorsSource(args.materials),
-            targets=ds.TMBATargetsSource(
-                args.targets, TARGETS_PARAMETERS, ds.MatDPDBIntensitiesSource
+            # targets=ds.TMBATargetsSource(
+            #     args.targets, TMBA_TARGETS_PARAMETERS, ds.MatDPDBIntensitiesSource
+            # ),
+            targets=ds.IntegratedAssessmentModel(
+                args.targets, IAM_TARGETS_PARAMETERS, ds.MatDPDBIntensitiesSource
             ),
         )
     else:
