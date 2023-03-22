@@ -5,7 +5,9 @@ from pathlib import Path
 import pandas as pd
 
 TECH_MAP_FILE = Path(__file__).parent / "Technology_Codes.xlsx"
-MATDB_COL = "tech_matdb"
+
+
+TechMap = dict[str, tuple[str, str]]
 
 
 class TechMapTypes(Enum):
@@ -22,10 +24,23 @@ def tech_map_frame() -> pd.DataFrame:
 
 def create_tech_map(
     from_type: TechMapTypes, to_type: TechMapTypes = TechMapTypes.MATDB
-) -> dict[str, str]:
+) -> TechMap:
+    """Create technology map from Technology_Codes.xlsx file.
+
+    Args:
+        from_type (TechMapTypes): source encoding
+        to_type (TechMapTypes, optional): Destination encoding. Defaults to TechMapTypes.MATDB.
+
+    Returns:
+        TechMap: Dictionary from tech to tuples (Category, specified tech encoding).
+    """
     df = tech_map_frame()
     from_col = from_type.value
     from_series = df[from_type.value]
     return (
-        df[~from_series.isna()].set_index(from_col)[to_type.value].fillna("").to_dict()
+        df[~from_series.isna()]
+        .set_index(from_col)[["Category", to_type.value]]
+        .dropna()
+        .apply(tuple, axis=1)
+        .to_dict()
     )

@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 from typing import ClassVar, Final
 
@@ -9,21 +10,14 @@ from mat_dp_pipeline.data_sources.country_sets.source_with_countries import (
     SourceWithCountries,
 )
 
-from .tech_map import TechMapTypes, create_tech_map
-
-PARAMETER_TO_CATEGORY = {
-    "Power Generation (Aggregate)": "Power plant",
-    "Power Generation Capacity (Aggregate)": "Power plant",
-    "New Power Generation Capacity (Aggregate)": "Power plant",
-}
+from .tech_map import TechMap, TechMapTypes, create_tech_map
 
 
 class TMBATargetsSource(TargetsSource):
     _targets_csv: Path
     _targets_parameters: list[str]
-    _parameter_to_category: dict[str, str]
     _grouping: Final[tuple[str, ...]] = ("country", "parameter")
-    _variable_to_specific: ClassVar[dict[str, str]] = create_tech_map(TechMapTypes.TMBA)
+    _tech_map: ClassVar[TechMap] = create_tech_map(TechMapTypes.TMBA)
 
     tail_labels: ClassVar[list[str]] = ["Parameter"]
 
@@ -32,13 +26,9 @@ class TMBATargetsSource(TargetsSource):
         target_csv: Path,
         targets_parameters: list[str],
         country_source: type[SourceWithCountries],
-        parameter_to_category: dict[str, str] | None = None,
     ):
         self._targets_csv = target_csv
         self._targets_parameters = targets_parameters
-        self._parameter_to_category = (
-            parameter_to_category if parameter_to_category else PARAMETER_TO_CATEGORY
-        )
         self._country_to_path = country_source.country_to_path(
             identifier=Identifier.alpha_2
         )
@@ -46,21 +36,24 @@ class TMBATargetsSource(TargetsSource):
     def __call__(self, output_dir: Path) -> None:
         targets = pd.read_csv(self._targets_csv)
         targets = targets[targets["parameter"].isin(self._targets_parameters)]
-        targets = (
-            targets.drop(columns=[targets.columns[0], "scenario"])
-            .rename(columns={"variable": "Specific"})
-            .dropna()
+        targets = targets.drop(columns=[targets.columns[0], "scenario"]).dropna()
+
+        tech_tuples = targets["variable"].map(self._tech_map)
+        if unmapped_variables := set(
+            targets.loc[tech_tuples[tech_tuples.isna()].index, "variable"]
+        ):
+            logging.warning(
+                f"The following variables don't have a corresponding mapping in the Tech Map: {unmapped_variables}. Ignoring them."
+            )
+            tech_tuples = tech_tuples.dropna()
+
+        targets.pop("variable")  # no longer needed
+        techs = pd.DataFrame.from_records(
+            tech_tuples.to_list(),
+            index=tech_tuples.index,
+            columns=["Category", "Specific"],
         )
-        category = targets["parameter"].map(self._parameter_to_category)
-        targets.insert(0, "Category", category)
-        for pattern, replacement in self._variable_to_specific.items():
-            # Remove (ignore) if there is no replacement, else replace
-            if not replacement:
-                targets = targets[targets["Specific"] != pattern]
-            else:
-                targets["Specific"] = targets["Specific"].str.replace(
-                    pattern, replacement
-                )
+        targets = targets.join(techs, how="inner")
 
         grouping = list(self._grouping)  # list needed
         for key, targets_frame in targets.groupby(grouping):

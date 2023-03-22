@@ -62,10 +62,10 @@ class IntegratedAssessmentModel(TargetsSource):
 
         # drop Variable, add Category + Specific
         # TODO: do not ignore unmapped!
-        techs_series = targets.pop("Variable").map(self._variable_to_tech).dropna()
+        tech_tuples = targets.pop("Variable").map(self._variable_to_tech).dropna()
         techs = pd.DataFrame.from_records(
-            techs_series.to_list(),
-            index=techs_series.index,
+            tech_tuples.to_list(),
+            index=tech_tuples.index,
             columns=["Category", "Specific"],
         )
         targets = targets.join(techs).dropna()  # TODO: remove dropna!
