@@ -87,7 +87,7 @@ class IntegratedAssessmentModel(TargetsSource):
         )
 
     def __call__(self, output_dir) -> None:
-        targets = self._targets
+        targets = self._targets.copy()
 
         # Scale the units as required and remove Unit column
         first_year_col_name = targets.columns[

@@ -155,7 +155,7 @@ class MatDPDBIndicatorsSource(IndicatorsSource):
         spreadsheet: str | Path,
         sheet_name: str = "Material emissions",
         engine: Literal["xlrd", "openpyxl", "odf", "pyxlsb"] | None = None,
-        header=1,
+        header=0,
     ):
         source = pd.read_excel(
             Path(spreadsheet), sheet_name=sheet_name, header=header, engine=engine

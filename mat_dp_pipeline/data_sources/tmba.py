@@ -65,7 +65,7 @@ class TMBATargetsSource(TargetsSource):
         )
 
     def __call__(self, output_dir: Path) -> None:
-        targets = self._targets
+        targets = self._targets.copy()
         # Pick targets which parameter's value is in requested parameters (self._targets_parameters)
         targets = targets[targets["parameter"].isin(self._targets_parameters)]
 
