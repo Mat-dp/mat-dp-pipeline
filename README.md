@@ -79,7 +79,7 @@ from mat_dp_pipeline import App, create_sdf, pipeline
 IAM_TARGETS_PARAMETERS = ["Primary Energy", "Secondary Energy|Electricity"]
 
 sdf = create_sdf(
-	intensities=ds.MatDPDBIntensitiesSource.from_excel("./materials.xlsx", sheet_name = "Material intensities"),_
+	intensities=ds.MatDPDBIntensitiesSource.from_excel("./materials.xlsx", sheet_name = "Material intensities"),
 	indicators=ds.MatDPDBIndicatorsSource.from_excel("./materials.xlsx", sheet_name = "Material emissions"),
 	targets=ds.IntegratedAssessmentModel.from_csv(
 		"./ima_targets.csv", IAM_TARGETS_PARAMETERS, ds.MatDPDBIntensitiesSource
