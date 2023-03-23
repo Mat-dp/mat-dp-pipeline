@@ -14,7 +14,7 @@ class TMBATargetsSource(TargetsSource):
     _targets_csv: Path
     _targets_parameters: list[str]
     _country_to_path: dict[str, Path]
-    _grouping: Final[tuple[str, ...]] = ("country", "parameter")
+    _grouping: Final[list[str]] = ["country", "parameter"]
     _tech_map: ClassVar[TechMap] = create_tech_map(TechMapTypes.TMBA)
 
     tail_labels: ClassVar[list[str]] = ["Parameter"]
@@ -37,8 +37,7 @@ class TMBATargetsSource(TargetsSource):
         targets = targets.drop(columns=[targets.columns[0], "scenario"]).dropna()
         targets = map_technologies(targets, "variable", self._tech_map)
 
-        grouping = list(self._grouping)  # list needed
-        for key, targets_frame in targets.groupby(grouping):
+        for key, targets_frame in targets.groupby(self._grouping):
             if key[0] == "NM":
                 # Special case for namibia, as we override alpha 2
                 country = "NA"
@@ -48,6 +47,6 @@ class TMBATargetsSource(TargetsSource):
             path = Path(*path)
             location_dir = output_dir / path.relative_to("/")
             location_dir.mkdir(exist_ok=True, parents=True)
-            targets_frame.drop(columns=grouping).to_csv(
+            targets_frame.drop(columns=self._grouping).to_csv(
                 location_dir / self.file_name, index=False
             )
