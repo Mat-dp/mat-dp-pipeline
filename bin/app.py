@@ -8,7 +8,10 @@ from mat_dp_pipeline import App, create_sdf, pipeline
 def main():
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(
-        title="target types", description="available target types", dest="target_type"
+        title="target types",
+        description="available target types",
+        dest="target_type",
+        required=True,
     )
     ima_parser = subparsers.add_parser(
         "ima", description="IMA target type", help="IMA target type"
@@ -40,7 +43,6 @@ def main():
     if args.target_type == "sdf":
         sdf = create_sdf(args.sdf_source)
     elif args.target_type == "tmba":
-        assert args.materials and args.targets
         sdf = create_sdf(
             intensities=ds.MatDPDBIntensitiesSource(args.materials),
             indicators=ds.MatDPDBIndicatorsSource(args.materials),
