@@ -15,9 +15,13 @@ class IntegratedAssessmentModel(TargetsSource):
     _spreadsheet_path: Path
     _parameters: list[str]
     _country_to_path: dict[str, Path]
-    _grouping: Final[tuple[str, ...]] = ("Region", "Model", "Scenario", "Parameter")
+    _grouping: Final[list[str]] = ["Region", "Model", "Scenario", "Parameter"]
     _tech_map: ClassVar[TechMap] = create_tech_map(TechMapTypes.IAM)
     tail_labels: ClassVar[list[str]] = ["Model", "Scenario", "Parameter"]
+    conversion_table: dict[str, float] = {
+        "EJ/yr": 31709.792,  # MW
+        "GW": 1000,  # MW
+    }
 
     def __init__(
         self,
@@ -52,13 +56,19 @@ class IntegratedAssessmentModel(TargetsSource):
                     raise ValueError(
                         f"Overlapping definition of parameters: {p1}, {p2}!"
                     )
-        # TODO: add scaling based on unit - as a dict parameter with some defaults containing EJ/yr etc?
-        # alternatively, validate the units?
 
     def __call__(self, output_dir) -> None:
         targets = pd.read_excel(self._spreadsheet_path, sheet_name="DATA_TIAM")
-        targets = targets.iloc[:, 1:]  # drop first columns
+
+        # Scale the units as required and remove Unit column
+        first_year_col_name = targets.columns[
+            targets.columns.to_list().index("Unit") + 1
+        ]
+        for unit, factor in self.conversion_table.items():
+            targets.loc[targets["Unit"] == unit, first_year_col_name:] *= factor
         targets.pop("Unit")
+
+        targets = targets.iloc[:, 1:]  # drop first columns
         targets.dropna(subset=["Region", "Scenario", "Model"], inplace=True)
         targets.fillna(0, inplace=True)
 
@@ -76,11 +86,10 @@ class IntegratedAssessmentModel(TargetsSource):
                 param_mask, "Variable"
             ].apply(lambda v: v[len(parameter) + 1 :])
             mask |= param_mask
-        targets = targets[mask]
-        targets = map_technologies(targets, "Variable", self._tech_map)
 
-        grouping = list(self._grouping)  # list needed
-        for key, targets_frame in targets.groupby(grouping):
+        targets = map_technologies(targets[mask], "Variable", self._tech_map)
+
+        for key, targets_frame in targets.groupby(self._grouping):
             # First element of grouping is Region!
             try:
                 path = (self._country_to_path[key[0]],) + key[1:]
@@ -92,6 +101,6 @@ class IntegratedAssessmentModel(TargetsSource):
             path = Path(*path)
             location_dir = output_dir / path.relative_to("/")
             location_dir.mkdir(exist_ok=True, parents=True)
-            targets_frame.drop(columns=grouping).to_csv(
+            targets_frame.drop(columns=self._grouping).to_csv(
                 location_dir / self.file_name, index=False
             )
