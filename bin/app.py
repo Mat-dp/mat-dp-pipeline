@@ -41,28 +41,27 @@ def main():
     IAM_TARGETS_PARAMETERS = ["Primary Energy", "Secondary Energy|Electricity"]
 
     if args.target_type == "sdf":
-        sdf = create_sdf(args.sdf_source)
-    elif args.target_type == "tmba":
-        sdf = create_sdf(
-            intensities=ds.MatDPDBIntensitiesSource(args.materials),
-            indicators=ds.MatDPDBIndicatorsSource(args.materials),
-            targets=ds.TMBATargetsSource(
-                args.targets, TMBA_TARGETS_PARAMETERS, ds.MatDPDBIntensitiesSource
-            ),
-        )
-    elif args.target_type == "iam":
-        sdf = create_sdf(
-            intensities=ds.MatDPDBIntensitiesSource(args.materials),
-            indicators=ds.MatDPDBIndicatorsSource(args.materials),
-            targets=ds.IntegratedAssessmentModel(
-                args.targets, IAM_TARGETS_PARAMETERS, ds.MatDPDBIntensitiesSource
-            ),
-        )
+        sdf = create_sdf(args.source)
     else:
-        assert False
+        if args.target_type == "tmba":
+            targets = ds.TMBATargetsSource(
+                args.targets, TMBA_TARGETS_PARAMETERS, ds.MatDPDBIntensitiesSource
+            )
+        elif args.target_type == "iam":
+            targets = ds.IntegratedAssessmentModel(
+                args.targets, IAM_TARGETS_PARAMETERS, ds.MatDPDBIntensitiesSource
+            )
+        else:
+            assert False
 
-    if args.sdf_output:
-        sdf.save(args.sdf_output)
+        sdf = create_sdf(
+            intensities=ds.MatDPDBIntensitiesSource(args.materials),
+            indicators=ds.MatDPDBIndicatorsSource(args.materials),
+            targets=targets,
+        )
+
+        if args.sdf_output:
+            sdf.save(args.sdf_output)
 
     output = pipeline(sdf)
     App(output).serve()
