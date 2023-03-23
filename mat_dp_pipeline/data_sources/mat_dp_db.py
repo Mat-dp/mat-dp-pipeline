@@ -155,9 +155,7 @@ class MatDPDBIndicatorsSource(IndicatorsSource):
         source = pd.read_excel(
             Path(spreadsheet), sheet_name=sheet_name, header=header, engine=engine
         )
-        return cls(
-            source,
-        )
+        return cls(source)
 
     @classmethod
     def from_csv(
