@@ -44,7 +44,7 @@ App(output).serve()
 
 The real differences in how mat dp pipeline can be used are all in SDF creation. After this point, all the steps are the same as above, but I've repeated them for full examples.
 
-Note that in the below I use a mix of excel files with a sheet_name, and csv directly - either syntax is acceptable for all data sources.
+Note that in the below I use a mix of excel files with a sheet_name, and csv directly - either syntax is acceptable for all data sources. You can also simply enter a dataframe into the init.
 
 ### TMBA
 
@@ -58,9 +58,9 @@ TMBA_TARGETS_PARAMETERS = [
 ]
 
 sdf = create_sdf(
-	intensities=ds.MatDPDBIntensitiesSource("./materials.xlsx", sheet_name = "Material intensities"),
-	indicators=ds.MatDPDBIndicatorsSource("./materials.xlsx", sheet_name = "Material emissions"),
-	targets=ds.TMBATargetsSource(
+	intensities=ds.MatDPDBIntensitiesSource.from_excel("./materials.xlsx", sheet_name = "Material intensities"),
+	indicators=ds.MatDPDBIndicatorsSource.from_excel("./materials.xlsx", sheet_name = "Material emissions"),
+	targets=ds.TMBATargetsSource.from_csv(
 		"./results_1.5_deg.csv", TMBA_TARGETS_PARAMETERS, ds.MatDPDBIntensitiesSource
 	),
 )
@@ -79,9 +79,9 @@ from mat_dp_pipeline import App, create_sdf, pipeline
 IAM_TARGETS_PARAMETERS = ["Primary Energy", "Secondary Energy|Electricity"]
 
 sdf = create_sdf(
-	intensities=ds.MatDPDBIntensitiesSource("./materials.xlsx", sheet_name = "Material intensities"),
-	indicators=ds.MatDPDBIndicatorsSource("./materials.xlsx", sheet_name = "Material emissions"),
-	targets=ds.IntegratedAssessmentModel(
+	intensities=ds.MatDPDBIntensitiesSource.from_excel("./materials.xlsx", sheet_name = "Material intensities"),_
+	indicators=ds.MatDPDBIndicatorsSource.from_excel("./materials.xlsx", sheet_name = "Material emissions"),
+	targets=ds.IntegratedAssessmentModel.from_csv(
 		"./ima_targets.csv", IAM_TARGETS_PARAMETERS, ds.MatDPDBIntensitiesSource
 	),
 )
