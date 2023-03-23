@@ -13,8 +13,8 @@ def main():
         dest="target_type",
         required=True,
     )
-    ima_parser = subparsers.add_parser(
-        "ima", description="IMA target type", help="IMA target type"
+    iam_parser = subparsers.add_parser(
+        "iam", description="IAM target type", help="IAM target type"
     )
     tmba_parser = subparsers.add_parser(
         "tmba", description="TMBA target type", help="TMBA target type"
@@ -24,9 +24,9 @@ def main():
     )
     sdf_parser.add_argument("source", type=Path)
 
-    ima_parser.add_argument("materials", type=Path)
-    ima_parser.add_argument("targets", type=Path)
-    ima_parser.add_argument("--sdf-output", type=Path)
+    iam_parser.add_argument("materials", type=Path)
+    iam_parser.add_argument("targets", type=Path)
+    iam_parser.add_argument("--sdf-output", type=Path)
 
     tmba_parser.add_argument("materials", type=Path)
     tmba_parser.add_argument("targets", type=Path)
