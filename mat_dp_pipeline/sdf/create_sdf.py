@@ -82,12 +82,14 @@ def create_sdf(
             elif isinstance(targets, ds.TargetsSource):
                 metadata.tail_labels = targets.tail_labels
             elif isinstance(targets, list):
-                # Use tail labels from targerts only when all are the same. Otherwise - empty list
+                # Use tail labels from targets only when all are the same. Otherwise - empty list
                 tail_labels = targets[0].tail_labels
                 if all(t.tail_labels == tail_labels for t in targets):
                     metadata.tail_labels = tail_labels
                 else:
                     metadata.tail_labels = []
+            else:
+                assert False
 
             metadata_file = Path(path / SDF_METADATA_FILE_NAME)
             with open(metadata_file, "w") as f:
