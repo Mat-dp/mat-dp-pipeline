@@ -59,37 +59,38 @@ def create_sdf(
             intensities(path)
             indicators(path)
 
-            has_single_target_source = isinstance(targets, ds.TargetsSource)
-            has_non_default_metadata = (
-                main_label or tail_labels or has_single_target_source
-            )
-            if has_non_default_metadata:
-                # We have some information about a non default metadata. We'll construct it
-                # and save it to the `path` location so that it can be loaded as part of the
-                # sdf load
-                metadata = SDFMetadata()
-                if main_label is not None:
-                    if isinstance(main_label, str):
-                        metadata.main_label = main_label
-                    elif main_label.main_label is not None:
-                        metadata.main_label = main_label.main_label
+            # We'll construct SDFMetadata and save it to the `path` location
+            # so that it can be loaded as part of the sdf load
+            metadata = SDFMetadata()
+            if main_label is not None:
+                if isinstance(main_label, str):
+                    metadata.main_label = main_label
+                elif main_label.main_label is not None:
+                    metadata.main_label = main_label.main_label
+            else:
+                if intensities.main_label is not None:
+                    metadata.main_label = intensities.main_label
+                elif indicators.main_label is not None:
+                    metadata.main_label = indicators.main_label
+
+            if tail_labels is not None:
+                metadata.tail_labels = (
+                    tail_labels
+                    if isinstance(tail_labels, list)
+                    else tail_labels.tail_labels
+                )
+            elif isinstance(targets, ds.TargetsSource):
+                metadata.tail_labels = targets.tail_labels
+            elif isinstance(targets, list):
+                # Use tail labels from targerts only when all are the same. Otherwise - empty list
+                tail_labels = targets[0].tail_labels
+                if all(t.tail_labels == tail_labels for t in targets):
+                    metadata.tail_labels = tail_labels
                 else:
-                    if intensities.main_label is not None:
-                        metadata.main_label = intensities.main_label
-                    elif indicators.main_label is not None:
-                        metadata.main_label = indicators.main_label
+                    metadata.tail_labels = []
 
-                if tail_labels is not None:
-                    metadata.tail_labels = (
-                        tail_labels
-                        if isinstance(tail_labels, list)
-                        else tail_labels.tail_labels
-                    )
-                elif has_single_target_source:
-                    metadata.tail_labels = targets.tail_labels
-
-                metadata_file = Path(path / SDF_METADATA_FILE_NAME)
-                with open(metadata_file, "w") as f:
-                    f.write(metadata.json())
+            metadata_file = Path(path / SDF_METADATA_FILE_NAME)
+            with open(metadata_file, "w") as f:
+                f.write(metadata.json())
 
             return load(path)
