@@ -5,10 +5,7 @@ from typing import ClassVar, Final
 import pandas as pd
 
 from mat_dp_pipeline.abstract_data_sources import TargetsSource
-from mat_dp_pipeline.data_sources.country_sets.country_set import Identifier
-from mat_dp_pipeline.data_sources.country_sets.source_with_countries import (
-    SourceWithCountries,
-)
+from mat_dp_pipeline.data_sources.country_sets import Identifier, SourceWithCountries
 
 from .common import map_technologies
 from .tech_map import TechMap, TechMapTypes, create_tech_map
