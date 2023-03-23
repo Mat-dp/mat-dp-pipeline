@@ -92,9 +92,7 @@ class MatDPDBIntensitiesSource(
         source = pd.read_excel(
             Path(spreadsheet), sheet_name=sheet_name, header=header, **pandas_kwargs
         )
-        return cls(
-            source,
-        )
+        return cls(source)
 
     @classmethod
     def from_csv(cls, csv: str | Path, header=1, **pandas_kwargs):
