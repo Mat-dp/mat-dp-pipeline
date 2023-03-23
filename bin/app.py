@@ -37,9 +37,9 @@ def main():
     ]
     IAM_TARGETS_PARAMETERS = ["Primary Energy", "Secondary Energy|Electricity"]
 
-    if args.target_type == 'sdf':
+    if args.target_type == "sdf":
         sdf = create_sdf(args.sdf_source)
-    elif args.target_type == 'tmba':
+    elif args.target_type == "tmba":
         assert args.materials and args.targets
         sdf = create_sdf(
             intensities=ds.MatDPDBIntensitiesSource(args.materials),
@@ -48,7 +48,7 @@ def main():
                 args.targets, TMBA_TARGETS_PARAMETERS, ds.MatDPDBIntensitiesSource
             ),
         )
-    elif args.target_type == 'iam':
+    elif args.target_type == "iam":
         sdf = create_sdf(
             intensities=ds.MatDPDBIntensitiesSource(args.materials),
             indicators=ds.MatDPDBIndicatorsSource(args.materials),
