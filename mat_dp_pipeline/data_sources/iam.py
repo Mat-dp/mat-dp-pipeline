@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import ClassVar, Final, Literal, Optional
+from typing import ClassVar, Final
 
 import pandas as pd
 
@@ -66,9 +66,11 @@ class IntegratedAssessmentModel(TargetsSource):
         parameters: list[str],
         country_source: type[SourceWithCountries],
         sheet_name: str = "DATA_TIAM",
-        engine: Literal["xlrd", "openpyxl", "odf", "pyxlsb"] | None = None,
+        **pandas_kwargs,
     ):
-        source = pd.read_excel(Path(spreadsheet), sheet_name=sheet_name, engine=engine)
+        source = pd.read_excel(
+            Path(spreadsheet), sheet_name=sheet_name, **pandas_kwargs
+        )
         return cls(source, country_source=country_source, parameters=parameters)
 
     @classmethod
@@ -77,9 +79,9 @@ class IntegratedAssessmentModel(TargetsSource):
         csv: str | Path,
         parameters: list[str],
         country_source: type[SourceWithCountries],
-        sep: Optional[str] = None,
+        **pandas_kwargs,
     ):
-        source = pd.read_csv(csv, sep=sep)
+        source = pd.read_csv(csv, **pandas_kwargs)
         return cls(
             source,
             country_source=country_source,

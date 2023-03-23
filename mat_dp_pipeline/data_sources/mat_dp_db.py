@@ -86,24 +86,19 @@ class MatDPDBIntensitiesSource(
         cls,
         spreadsheet: str | Path,
         sheet_name: str = "Material intensities",
-        engine: Literal["xlrd", "openpyxl", "odf", "pyxlsb"] | None = None,
         header=1,
+        **pandas_kwargs
     ):
         source = pd.read_excel(
-            Path(spreadsheet), sheet_name=sheet_name, header=header, engine=engine
+            Path(spreadsheet), sheet_name=sheet_name, header=header, **pandas_kwargs
         )
         return cls(
             source,
         )
 
     @classmethod
-    def from_csv(
-        cls,
-        csv: str | Path,
-        sep: Optional[str] = None,
-        header=1,
-    ):
-        source = pd.read_csv(csv, sep=sep, header=header)
+    def from_csv(cls, csv: str | Path, header=1, **pandas_kwargs):
+        source = pd.read_csv(csv, header=header, **pandas_kwargs)
         return cls(source)
 
     def _raw(self) -> pd.DataFrame:
