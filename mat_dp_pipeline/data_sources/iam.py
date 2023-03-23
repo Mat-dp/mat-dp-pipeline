@@ -35,7 +35,7 @@ class IntegratedAssessmentModel(TargetsSource):
 
         Args:
             spreadsheet_path (Path): path to the spreadsheet on the hard drive.
-            parameters (list[str]): list of parameters such as "Primary Energy", "Final Energy".
+            parameters (list[str]): list of parameters such as "Primary Energy", "Secondary Energy|Electricity".
                                     Essentially these are prefixes of values in `variable` column
                                     of the spreadsheet.
             country_source (type[SourceWithCountries]):
@@ -43,7 +43,9 @@ class IntegratedAssessmentModel(TargetsSource):
                 used. This is required to guarantee correct country/region mapping to the paths between
                 the intensities/indicators and the targets.
         """
-        assert len(parameters) > 0
+        if not parameters:
+            raise ValueError("You must specify parameters.")
+
         self._spreadsheet_path = spreadsheet_path
         self._parameters = parameters
         self._country_to_path = country_source.country_to_path(
@@ -74,7 +76,7 @@ class IntegratedAssessmentModel(TargetsSource):
 
         # Create empty Parameter column. We'll be adding here the prefixes
         # of Variable column defined in self._parameters
-        targets["Parameter"] = ""
+        targets["Parameter"] = None
 
         mask = pd.Series(False, index=targets.index)
         # Select only the variables requested by self._parameters
@@ -86,6 +88,13 @@ class IntegratedAssessmentModel(TargetsSource):
                 param_mask, "Variable"
             ].apply(lambda v: v[len(parameter) + 1 :])
             mask |= param_mask
+
+        # Narrow down targets to the requested parameters
+        targets = targets[mask]
+        assert not any(targets["Parameter"].isna())
+        if targets.empty:
+            logging.warning("Targets for selected parameters are empty!")
+            return
 
         targets = map_technologies(targets[mask], "Variable", self._tech_map)
 
