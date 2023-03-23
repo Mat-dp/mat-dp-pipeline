@@ -63,6 +63,9 @@ mat_dp_country_sets: CountrySets = {
             CustomCountry(name="Oceania", alpha_2="OC", alpha_3=None),
         ],
     ),
+    "World": CountrySet(
+        custom_countries=[CustomCountry(name="World", alpha_2="World", alpha_3="World")]
+    ),
 }
 
 
