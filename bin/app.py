@@ -17,7 +17,7 @@ def main():
         "tmba", description="TMBA target type", help="TMBA target type"
     )
     sdf_parser = subparsers.add_parser(
-        "sdf", description="TMBA target type", help="TMBA target type"
+        "sdf", description="SDF target type", help="SDF target type"
     )
     sdf_parser.add_argument("source", type=Path)
 
