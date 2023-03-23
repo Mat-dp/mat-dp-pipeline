@@ -1,6 +1,6 @@
 # Mat DP Pipeline
 
-The idea of mat-dp-pipeline is that provides a multitude of input interfaces, that each convert to the same structure, otherwise known as the Standard Data Format (SDF). The SDF is then processed by the pipeline to produce graphs that show the use of materials or production of "indicator" (a quantity representating a measured output, like emissions or employment).
+The idea of mat-dp-pipeline is that it provides a multitude of input interfaces, that each convert to the same structure, otherwise known as the Standard Data Format (SDF). The SDF is then processed by the pipeline to produce graphs that show the use of materials or production of "indicator" (a quantity representating a measured output, like emissions or employment).
 
 # Installation
 
