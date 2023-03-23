@@ -33,7 +33,7 @@ class IntegratedAssessmentModel(TargetsSource):
         The spreadsheet must have a tab called "DATA_TIAM".
 
         Args:
-            spreadsheet_path (Path): path to the spreadsheet on the harddrive.
+            spreadsheet_path (Path): path to the spreadsheet on the hard drive.
             parameters (list[str]): list of parameters such as "Primary Energy", "Final Energy".
                                     Essentially these are prefixes of values in `variable` column
                                     of the spreadsheet.
@@ -45,11 +45,9 @@ class IntegratedAssessmentModel(TargetsSource):
         assert len(parameters) > 0
         self._spreadsheet_path = spreadsheet_path
         self._parameters = parameters
-        self._country_to_path = (
-            country_source.country_to_path(identifier=Identifier.alpha_2)
-            | country_source.country_to_path(identifier=Identifier.alpha_3)
-            | {"World": Path("/World")}
-        )
+        self._country_to_path = country_source.country_to_path(
+            identifier=Identifier.alpha_2
+        ) | country_source.country_to_path(identifier=Identifier.alpha_3)
 
         for i, p1 in enumerate(parameters):
             for j, p2 in enumerate(parameters):
@@ -58,7 +56,7 @@ class IntegratedAssessmentModel(TargetsSource):
                         f"Overlapping definition of parameters: {p1}, {p2}!"
                     )
         # TODO: add scaling based on unit - as a dict parameter with some defaults containing EJ/yr etc?
-        # alternativelly, validate the units?
+        # alternatively, validate the units?
 
     def __call__(self, output_dir) -> None:
         targets = pd.read_excel(self._spreadsheet_path, sheet_name="DATA_TIAM")
@@ -72,7 +70,7 @@ class IntegratedAssessmentModel(TargetsSource):
         targets["Parameter"] = ""
 
         mask = pd.Series(False, index=targets.index)
-        # Select only the variables requesteds by self._parameters
+        # Select only the variables requested by self._parameters
         for parameter in self._parameters:
             param_mask = targets["Variable"].str.startswith(parameter + "|")
             targets.loc[param_mask, "Parameter"] = parameter
@@ -82,7 +80,6 @@ class IntegratedAssessmentModel(TargetsSource):
             ].apply(lambda v: v[len(parameter) + 1 :])
             mask |= param_mask
         targets = targets[mask]
-        print(targets)
         targets = map_technologies(targets, "Variable", self._tech_map)
 
         grouping = list(self._grouping)  # list needed
