@@ -7,11 +7,27 @@ from mat_dp_pipeline import App, create_sdf, pipeline
 
 def main():
     parser = argparse.ArgumentParser()
-    # TODO: groups. either sdf-source or materials & targets (+their types of data source)
-    parser.add_argument("--sdf-source", type=Path)
-    parser.add_argument("--materials", type=Path)
-    parser.add_argument("--targets", type=Path)
-    parser.add_argument("--sdf-output", type=Path)
+    subparsers = parser.add_subparsers(
+        title="target types", description="available target types", dest="target_type"
+    )
+    ima_parser = subparsers.add_parser(
+        "ima", description="IMA target type", help="IMA target type"
+    )
+    tmba_parser = subparsers.add_parser(
+        "tmba", description="TMBA target type", help="TMBA target type"
+    )
+    sdf_parser = subparsers.add_parser(
+        "sdf", description="TMBA target type", help="TMBA target type"
+    )
+    sdf_parser.add_argument("source", type=Path)
+
+    ima_parser.add_argument("materials", type=Path)
+    ima_parser.add_argument("targets", type=Path)
+    ima_parser.add_argument("--sdf-output", type=Path)
+
+    tmba_parser.add_argument("materials", type=Path)
+    tmba_parser.add_argument("targets", type=Path)
+    tmba_parser.add_argument("--sdf-output", type=Path)
 
     args = parser.parse_args()
 
@@ -21,21 +37,27 @@ def main():
     ]
     IAM_TARGETS_PARAMETERS = ["Primary Energy", "Secondary Energy|Electricity"]
 
-    if not args.sdf_source:
-        # TODO: this is just a quick hacky/demo version of course
+    if args.target_type == 'sdf':
+        sdf = create_sdf(args.sdf_source)
+    elif args.target_type == 'tmba':
         assert args.materials and args.targets
         sdf = create_sdf(
             intensities=ds.MatDPDBIntensitiesSource(args.materials),
             indicators=ds.MatDPDBIndicatorsSource(args.materials),
-            # targets=ds.TMBATargetsSource(
-            #     args.targets, TMBA_TARGETS_PARAMETERS, ds.MatDPDBIntensitiesSource
-            # ),
+            targets=ds.TMBATargetsSource(
+                args.targets, TMBA_TARGETS_PARAMETERS, ds.MatDPDBIntensitiesSource
+            ),
+        )
+    elif args.target_type == 'iam':
+        sdf = create_sdf(
+            intensities=ds.MatDPDBIntensitiesSource(args.materials),
+            indicators=ds.MatDPDBIndicatorsSource(args.materials),
             targets=ds.IntegratedAssessmentModel(
                 args.targets, IAM_TARGETS_PARAMETERS, ds.MatDPDBIntensitiesSource
             ),
         )
     else:
-        sdf = create_sdf(args.sdf_source)
+        assert False
 
     if args.sdf_output:
         sdf.save(args.sdf_output)
