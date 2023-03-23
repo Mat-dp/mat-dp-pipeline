@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Literal, Optional
 
 import pandas as pd
 
@@ -77,16 +78,37 @@ class MatDPDBIntensitiesSource(
 ):
     _materials_spreadsheet: Path
 
-    def __init__(self, materials_spreadsheet: Path):
-        self._materials_spreadsheet = materials_spreadsheet
+    def __init__(self, intensities: pd.DataFrame):
+        self._intensities = intensities
+
+    @classmethod
+    def from_excel(
+        cls,
+        spreadsheet: str | Path,
+        sheet_name: str = "Material intensities",
+        engine: Literal["xlrd", "openpyxl", "odf", "pyxlsb"] | None = None,
+        header=1,
+    ):
+        source = pd.read_excel(
+            Path(spreadsheet), sheet_name=sheet_name, header=header, engine=engine
+        )
+        return cls(
+            source,
+        )
+
+    @classmethod
+    def from_csv(
+        cls,
+        csv: str | Path,
+        sep: Optional[str] = None,
+        header=1,
+    ):
+        source = pd.read_csv(csv, sep=sep, header=header)
+        return cls(source)
 
     def _raw(self) -> pd.DataFrame:
         df = (
-            pd.read_excel(
-                self._materials_spreadsheet,
-                sheet_name="Material intensities",
-                header=1,
-            )
+            self._intensities.copy()
             .drop(
                 columns=[
                     "Total",
@@ -124,13 +146,38 @@ class MatDPDBIntensitiesSource(
 class MatDPDBIndicatorsSource(IndicatorsSource):
     _materials_spreadsheet: Path
 
-    def __init__(self, materials_spreadsheet: Path):
-        self._materials_spreadsheet = materials_spreadsheet
+    def __init__(self, indicators: pd.DataFrame):
+        self._indicators = indicators
+
+    @classmethod
+    def from_excel(
+        cls,
+        spreadsheet: str | Path,
+        sheet_name: str = "Material emissions",
+        engine: Literal["xlrd", "openpyxl", "odf", "pyxlsb"] | None = None,
+        header=1,
+    ):
+        source = pd.read_excel(
+            Path(spreadsheet), sheet_name=sheet_name, header=header, engine=engine
+        )
+        return cls(
+            source,
+        )
+
+    @classmethod
+    def from_csv(
+        cls,
+        csv: str | Path,
+        sep: Optional[str] = None,
+        header=1,
+    ):
+        source = pd.read_csv(csv, sep=sep, header=header)
+        return cls(source)
 
     def __call__(self, output_dir: Path) -> None:
         output_dir.mkdir(exist_ok=True, parents=True)
         (
-            pd.read_excel(self._materials_spreadsheet, sheet_name="Material emissions")
+            self._indicators.copy()
             .drop(
                 columns=[
                     "Material description",

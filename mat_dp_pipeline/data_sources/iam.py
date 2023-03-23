@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import ClassVar, Final
+from typing import ClassVar, Final, Literal, Optional
 
 import pandas as pd
 
@@ -12,7 +12,7 @@ from .tech_map import TechMap, TechMapTypes, create_tech_map
 
 
 class IntegratedAssessmentModel(TargetsSource):
-    _spreadsheet_path: Path
+    _targets: pd.DataFrame
     _parameters: list[str]
     _country_to_path: dict[str, Path]
     _grouping: Final[list[str]] = ["Region", "Model", "Scenario", "Parameter"]
@@ -25,7 +25,7 @@ class IntegratedAssessmentModel(TargetsSource):
 
     def __init__(
         self,
-        spreadsheet_path: Path,
+        targets: pd.DataFrame,
         parameters: list[str],
         country_source: type[SourceWithCountries],
     ) -> None:
@@ -46,7 +46,7 @@ class IntegratedAssessmentModel(TargetsSource):
         if not parameters:
             raise ValueError("You must specify parameters.")
 
-        self._spreadsheet_path = spreadsheet_path
+        self._targets = targets
         self._parameters = parameters
         self._country_to_path = country_source.country_to_path(
             identifier=Identifier.alpha_2
@@ -59,8 +59,35 @@ class IntegratedAssessmentModel(TargetsSource):
                         f"Overlapping definition of parameters: {p1}, {p2}!"
                     )
 
+    @classmethod
+    def from_excel(
+        cls,
+        spreadsheet: str | Path,
+        parameters: list[str],
+        country_source: type[SourceWithCountries],
+        sheet_name: str = "DATA_TIAM",
+        engine: Literal["xlrd", "openpyxl", "odf", "pyxlsb"] | None = None,
+    ):
+        source = pd.read_excel(Path(spreadsheet), sheet_name=sheet_name, engine=engine)
+        return cls(source, country_source=country_source, parameters=parameters)
+
+    @classmethod
+    def from_csv(
+        cls,
+        csv: str | Path,
+        parameters: list[str],
+        country_source: type[SourceWithCountries],
+        sep: Optional[str] = None,
+    ):
+        source = pd.read_csv(csv, sep=sep)
+        return cls(
+            source,
+            country_source=country_source,
+            parameters=parameters,
+        )
+
     def __call__(self, output_dir) -> None:
-        targets = pd.read_excel(self._spreadsheet_path, sheet_name="DATA_TIAM")
+        targets = self._targets
 
         # Scale the units as required and remove Unit column
         first_year_col_name = targets.columns[
