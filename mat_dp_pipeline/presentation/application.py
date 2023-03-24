@@ -75,8 +75,8 @@ class App:
     def __init__(
         self,
         outputs: PipelineOutput,
-        main_label: str | None = None,
-        tail_labels: list[str] | None = None,
+        main_label_override: str | None = None,
+        tail_labels_override: list[str] | None = None,
         indicator_label: str = "Emissions",
     ):
         self.dash_app = Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
@@ -84,11 +84,19 @@ class App:
         self.indicators = sorted(self.outputs.indicators)
         self.paths = sorted(self.outputs.by_path.keys())
 
-        self.tail_labels = (
-            tail_labels if tail_labels is not None else outputs.metadata.tail_labels
-        )
+        if tail_labels_override:
+            if len(tail_labels_override) > len(outputs.metadata.tail_labels):
+                raise ValueError(
+                    "Tail labels overrides are longer than the ones from SDF's meta data!"
+                )
+            self.tail_labels = tail_labels_override
+        else:
+            self.tail_labels = outputs.metadata.tail_labels
+
         self.main_label = (
-            main_label if main_label is not None else outputs.metadata.main_label
+            main_label_override
+            if main_label_override is not None
+            else outputs.metadata.main_label
         )
         self.indicator_label = indicator_label
         path_inputs = [Input("main", "value")] + [
