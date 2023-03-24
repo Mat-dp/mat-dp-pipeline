@@ -66,12 +66,18 @@ def create_dropdown(tree: Tree) -> list[tuple[str, bool]]:
 class App:
     dash_app: Dash
     outputs: PipelineOutput
+    indicators: list[str]
+    paths: list[Path]
+    tail_labels: list[str]
+    main_label: str
+    indicator_label: str
 
     def __init__(
         self,
         outputs: PipelineOutput,
         main_label_override: str | None = None,
         tail_labels_override: list[str] | None = None,
+        indicator_label: str = "Emissions",
     ):
         self.dash_app = Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
         self.outputs = outputs
@@ -92,7 +98,7 @@ class App:
             if main_label_override is not None
             else outputs.metadata.main_label
         )
-
+        self.indicator_label = indicator_label
         path_inputs = [Input("main", "value")] + [
             Input(f"dropdown_{i}", "value") for i in range(len(self.tail_labels))
         ]
@@ -219,9 +225,15 @@ class App:
         self, path: Path, indicator: str, year: int | None
     ) -> list[go.Figure]:
         return [
-            indicator_by_resource_over_years(self.outputs, path, indicator),
-            indicator_by_tech_agg(self.outputs, path, indicator, year),
-            indicator_by_resource_agg(self.outputs, path, indicator, year),
+            indicator_by_resource_over_years(
+                self.outputs, path, indicator, self.indicator_label
+            ),
+            indicator_by_tech_agg(
+                self.outputs, path, indicator, year, self.indicator_label
+            ),
+            indicator_by_resource_agg(
+                self.outputs, path, indicator, year, self.indicator_label
+            ),
         ]
 
     def register_callback(self, fn, *spec):

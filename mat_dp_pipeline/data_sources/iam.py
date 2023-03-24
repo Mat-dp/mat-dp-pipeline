@@ -12,7 +12,7 @@ from .tech_map import TechMap, TechMapTypes, create_tech_map
 
 
 class IntegratedAssessmentModel(TargetsSource):
-    _spreadsheet_path: Path
+    _targets: pd.DataFrame
     _parameters: list[str]
     _country_to_path: dict[str, Path]
     _grouping: Final[list[str]] = ["Region", "Model", "Scenario", "Parameter"]
@@ -25,16 +25,14 @@ class IntegratedAssessmentModel(TargetsSource):
 
     def __init__(
         self,
-        spreadsheet_path: Path,
+        targets: pd.DataFrame,
         parameters: list[str],
         country_source: type[SourceWithCountries],
     ) -> None:
         """Targets Data Sources for Integrated Assement Model (TIAM).
 
-        The spreadsheet must have a tab called "DATA_TIAM".
-
         Args:
-            spreadsheet_path (Path): path to the spreadsheet on the hard drive.
+            targets (pd.DataFrame): The dataframe for targets.
             parameters (list[str]): list of parameters such as "Primary Energy", "Secondary Energy|Electricity".
                                     Essentially these are prefixes of values in `variable` column
                                     of the spreadsheet.
@@ -46,7 +44,7 @@ class IntegratedAssessmentModel(TargetsSource):
         if not parameters:
             raise ValueError("You must specify parameters.")
 
-        self._spreadsheet_path = spreadsheet_path
+        self._targets = targets
         self._parameters = parameters
         self._country_to_path = country_source.country_to_path(
             identifier=Identifier.alpha_2
@@ -59,8 +57,37 @@ class IntegratedAssessmentModel(TargetsSource):
                         f"Overlapping definition of parameters: {p1}, {p2}!"
                     )
 
+    @classmethod
+    def from_excel(
+        cls,
+        spreadsheet: str | Path,
+        parameters: list[str],
+        country_source: type[SourceWithCountries],
+        sheet_name: str = "DATA_TIAM",
+        **pandas_kwargs,
+    ):
+        source = pd.read_excel(
+            Path(spreadsheet), sheet_name=sheet_name, **pandas_kwargs
+        )
+        return cls(source, country_source=country_source, parameters=parameters)
+
+    @classmethod
+    def from_csv(
+        cls,
+        csv: str | Path,
+        parameters: list[str],
+        country_source: type[SourceWithCountries],
+        **pandas_kwargs,
+    ):
+        source = pd.read_csv(csv, **pandas_kwargs)
+        return cls(
+            source,
+            country_source=country_source,
+            parameters=parameters,
+        )
+
     def __call__(self, output_dir) -> None:
-        targets = pd.read_excel(self._spreadsheet_path, sheet_name="DATA_TIAM")
+        targets = self._targets
 
         # Scale the units as required and remove Unit column
         first_year_col_name = targets.columns[

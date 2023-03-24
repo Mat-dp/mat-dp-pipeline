@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Literal, Optional
 
 import pandas as pd
 
@@ -77,32 +78,42 @@ class MatDPDBIntensitiesSource(
 ):
     _materials_spreadsheet: Path
 
-    def __init__(self, materials_spreadsheet: Path):
-        self._materials_spreadsheet = materials_spreadsheet
+    def __init__(self, intensities: pd.DataFrame):
+        self._intensities = intensities
+
+    @classmethod
+    def from_excel(
+        cls,
+        spreadsheet: str | Path,
+        sheet_name: str = "Material intensities",
+        header=1,
+        **pandas_kwargs
+    ):
+        source = pd.read_excel(
+            Path(spreadsheet), sheet_name=sheet_name, header=header, **pandas_kwargs
+        )
+        return cls(source)
+
+    @classmethod
+    def from_csv(cls, csv: str | Path, header=1, **pandas_kwargs):
+        source = pd.read_csv(csv, header=header, **pandas_kwargs)
+        return cls(source)
 
     def _raw(self) -> pd.DataFrame:
-        df = (
-            pd.read_excel(
-                self._materials_spreadsheet,
-                sheet_name="Material intensities",
-                header=1,
-            )
-            .drop(
-                columns=[
-                    "Total",
-                    "Comments",
-                    "Data collection responsible",
-                    "Data collection date",
-                    "Vehicle/infrastructure primary purpose",
-                ]
-            )
-            .rename(
-                columns={
-                    "Technology category": "Category",
-                    "Technology name": "Specific",
-                    "Technology description": "Description",
-                }
-            )
+        df = self._intensities.drop(
+            columns=[
+                "Total",
+                "Comments",
+                "Data collection responsible",
+                "Data collection date",
+                "Vehicle/infrastructure primary purpose",
+            ]
+        ).rename(
+            columns={
+                "Technology category": "Category",
+                "Technology name": "Specific",
+                "Technology description": "Description",
+            }
         )
         units = df["Units"].str.split("/", n=1, expand=True)
         df.pop("Units")
@@ -124,14 +135,36 @@ class MatDPDBIntensitiesSource(
 class MatDPDBIndicatorsSource(IndicatorsSource):
     _materials_spreadsheet: Path
 
-    def __init__(self, materials_spreadsheet: Path):
-        self._materials_spreadsheet = materials_spreadsheet
+    def __init__(self, indicators: pd.DataFrame):
+        self._indicators = indicators
+
+    @classmethod
+    def from_excel(
+        cls,
+        spreadsheet: str | Path,
+        sheet_name: str = "Material emissions",
+        engine: Literal["xlrd", "openpyxl", "odf", "pyxlsb"] | None = None,
+        header: int = 0,
+    ):
+        source = pd.read_excel(
+            Path(spreadsheet), sheet_name=sheet_name, header=header, engine=engine
+        )
+        return cls(source)
+
+    @classmethod
+    def from_csv(
+        cls,
+        csv: str | Path,
+        sep: Optional[str] = None,
+        header: int = 1,
+    ):
+        source = pd.read_csv(csv, sep=sep, header=header)
+        return cls(source)
 
     def __call__(self, output_dir: Path) -> None:
         output_dir.mkdir(exist_ok=True, parents=True)
         (
-            pd.read_excel(self._materials_spreadsheet, sheet_name="Material emissions")
-            .drop(
+            self._indicators.drop(
                 columns=[
                     "Material description",
                     "Object title in Ecoinvent",

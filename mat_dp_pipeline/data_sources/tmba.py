@@ -24,21 +24,50 @@ class TMBATargetsSource(TargetsSource):
 
     def __init__(
         self,
-        target_csv: Path,
-        targets_parameters: list[str],
+        targets: pd.DataFrame,
+        parameters: list[str],
         country_source: type[SourceWithCountries],
     ):
-        if not targets_parameters:
+        if not parameters:
             raise ValueError("You must specify parameters.")
 
-        self._targets_csv = target_csv
-        self._targets_parameters = targets_parameters
+        self._targets = targets
+        self._targets_parameters = parameters
         self._country_to_path = country_source.country_to_path(
             identifier=Identifier.alpha_2
         )
 
+    @classmethod
+    def from_excel(
+        cls,
+        spreadsheet: str | Path,
+        parameters: list[str],
+        country_source: type[SourceWithCountries],
+        sheet_name: str = "DATA_TIAM",
+        **pandas_kwargs
+    ):
+        source = pd.read_excel(
+            Path(spreadsheet), sheet_name=sheet_name, **pandas_kwargs
+        )
+        return cls(source, country_source=country_source, parameters=parameters)
+
+    @classmethod
+    def from_csv(
+        cls,
+        csv: str | Path,
+        parameters: list[str],
+        country_source: type[SourceWithCountries],
+        **pandas_kwargs
+    ):
+        source = pd.read_csv(csv, **pandas_kwargs)
+        return cls(
+            source,
+            country_source=country_source,
+            parameters=parameters,
+        )
+
     def __call__(self, output_dir: Path) -> None:
-        targets = pd.read_csv(self._targets_csv)
+        targets = self._targets
         # Pick targets which parameter's value is in requested parameters (self._targets_parameters)
         targets = targets[targets["parameter"].isin(self._targets_parameters)]
 

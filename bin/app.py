@@ -44,19 +44,19 @@ def main():
         sdf = create_sdf(args.source)
     else:
         if args.target_type == "tmba":
-            targets = ds.TMBATargetsSource(
+            targets = ds.TMBATargetsSource.from_csv(
                 args.targets, TMBA_TARGETS_PARAMETERS, ds.MatDPDBIntensitiesSource
             )
         elif args.target_type == "iam":
-            targets = ds.IntegratedAssessmentModel(
+            targets = ds.IntegratedAssessmentModel.from_excel(
                 args.targets, IAM_TARGETS_PARAMETERS, ds.MatDPDBIntensitiesSource
             )
         else:
             assert False
 
         sdf = create_sdf(
-            intensities=ds.MatDPDBIntensitiesSource(args.materials),
-            indicators=ds.MatDPDBIndicatorsSource(args.materials),
+            intensities=ds.MatDPDBIntensitiesSource.from_excel(args.materials),
+            indicators=ds.MatDPDBIndicatorsSource.from_excel(args.materials),
             targets=targets,
         )
 
