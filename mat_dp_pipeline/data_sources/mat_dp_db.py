@@ -100,24 +100,20 @@ class MatDPDBIntensitiesSource(
         return cls(source)
 
     def _raw(self) -> pd.DataFrame:
-        df = (
-            self._intensities.copy()
-            .drop(
-                columns=[
-                    "Total",
-                    "Comments",
-                    "Data collection responsible",
-                    "Data collection date",
-                    "Vehicle/infrastructure primary purpose",
-                ]
-            )
-            .rename(
-                columns={
-                    "Technology category": "Category",
-                    "Technology name": "Specific",
-                    "Technology description": "Description",
-                }
-            )
+        df = self._intensities.drop(
+            columns=[
+                "Total",
+                "Comments",
+                "Data collection responsible",
+                "Data collection date",
+                "Vehicle/infrastructure primary purpose",
+            ]
+        ).rename(
+            columns={
+                "Technology category": "Category",
+                "Technology name": "Specific",
+                "Technology description": "Description",
+            }
         )
         units = df["Units"].str.split("/", n=1, expand=True)
         df.pop("Units")
@@ -168,8 +164,7 @@ class MatDPDBIndicatorsSource(IndicatorsSource):
     def __call__(self, output_dir: Path) -> None:
         output_dir.mkdir(exist_ok=True, parents=True)
         (
-            self._indicators.copy()
-            .drop(
+            self._indicators.drop(
                 columns=[
                     "Material description",
                     "Object title in Ecoinvent",

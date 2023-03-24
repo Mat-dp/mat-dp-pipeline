@@ -31,10 +31,8 @@ class IntegratedAssessmentModel(TargetsSource):
     ) -> None:
         """Targets Data Sources for Integrated Assement Model (TIAM).
 
-        The spreadsheet must have a tab called "DATA_TIAM".
-
         Args:
-            spreadsheet_path (Path): path to the spreadsheet on the hard drive.
+            targets (pd.DataFrame): The dataframe for targets.
             parameters (list[str]): list of parameters such as "Primary Energy", "Secondary Energy|Electricity".
                                     Essentially these are prefixes of values in `variable` column
                                     of the spreadsheet.
@@ -89,7 +87,7 @@ class IntegratedAssessmentModel(TargetsSource):
         )
 
     def __call__(self, output_dir) -> None:
-        targets = self._targets.copy()
+        targets = self._targets
 
         # Scale the units as required and remove Unit column
         first_year_col_name = targets.columns[

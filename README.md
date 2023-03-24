@@ -108,19 +108,26 @@ Then for each subcommand e.g.
 The below shows a potential structure of a Standard Data Format:
 
 ```
-tech.csv (coal)
-tech_2016.csv (coal)
-indicators
+intensities.csv (coal)
+intensities_2016.csv (coal)
+indicators.csv
 -> Africa
-	tech.csv (nuclear, wood)
-	tech_2015.csv (nuclear, wood) B
-	tech_2020.csv (nuclear, wood)
+	intensities.csv (nuclear, wood)
+	intensities_2015.csv (nuclear, wood)
+	intensities_2020.csv (nuclear, wood)
 	-> Kenya
-		tech.csv (fish, fusion)
-		tech_2011.csv (nuclear) A
-		tech_2017.csv (wood, coal)
+		intensities.csv (fish, fusion, nuclear, wood, coal)
+		intensities_2011.csv (nuclear)
+		intensities_2017.csv (wood, coal)
 		targets.csv (coal, nuclear)
+-> Europe
 	-> England
-		tech.csv
-		targets.csv <<- required file for every country!!!
+		intensities.csv
+		targets.csv
 ```
+
+The SDF is a generalised format that other more specific formats can be converted to. The folders can be arranged in any structure, but are most often grouped by countries, continents and parameters. Each level takes its intensities and indicators hierarchically.
+
+You can also specify year based files in the SDF. If these are specified, a linear interpolation is performed between the files, to allow changing intensities and indicators through the years. In the targets file you must already specify the years, so this condition does not apply.
+
+The yearly files must also not specify technologies which aren't already present in the base file. Also there must always be a base file at the level where there are years.
