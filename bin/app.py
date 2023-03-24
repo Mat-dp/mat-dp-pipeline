@@ -48,7 +48,7 @@ def main():
                 args.targets, TMBA_TARGETS_PARAMETERS, ds.MatDPDBIntensitiesSource
             )
         elif args.target_type == "iam":
-            targets = ds.IntegratedAssessmentModel.from_csv(
+            targets = ds.IntegratedAssessmentModel.from_excel(
                 args.targets, IAM_TARGETS_PARAMETERS, ds.MatDPDBIntensitiesSource
             )
         else:
