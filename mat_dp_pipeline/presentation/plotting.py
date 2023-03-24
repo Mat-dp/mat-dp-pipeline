@@ -42,7 +42,7 @@ def _years_for_title(year: int | None) -> str:
 
 
 def indicator_by_resource_over_years(
-    data: PipelineOutput, path: Path, indicator: str
+    data: PipelineOutput, path: Path, indicator: str, indicator_label="Emissions"
 ) -> go.Figure:
     emissions = (
         data.emissions(path, indicator)
@@ -62,14 +62,18 @@ def indicator_by_resource_over_years(
     )
     fig.update_traces(hovertemplate="%{x}: %{y}")
     fig.update_layout(
-        title="Emissions from material production",
+        title=f"{indicator_label} from material production",
         title_font_size=24,
     )
     return fig
 
 
 def indicator_by_tech_agg(
-    data: PipelineOutput, path: Path, indicator: str, year: int | None
+    data: PipelineOutput,
+    path: Path,
+    indicator: str,
+    year: int | None,
+    indicator_label: str = "Emissions",
 ) -> go.Figure:
     if year is None:
         emissions = data.emissions(path, indicator).reset_index()
@@ -92,7 +96,7 @@ def indicator_by_tech_agg(
     )
     sorted(data.by_year.keys())
     fig.update_layout(
-        title=f"Emissions by technology ({_years_for_title(year)})",
+        title=f"{indicator_label} by technology ({_years_for_title(year)})",
         title_font_size=24,
         updatemenus=[x_log_switch()],
         yaxis={"categoryorder": "total ascending"},
@@ -101,7 +105,11 @@ def indicator_by_tech_agg(
 
 
 def indicator_by_resource_agg(
-    data: PipelineOutput, path: Path, indicator: str, year: int | None
+    data: PipelineOutput,
+    path: Path,
+    indicator: str,
+    year: int | None,
+    indicator_label: str = "Emissions",
 ) -> go.Figure:
     if year is None:
         emissions = data.emissions(path, indicator)
@@ -127,7 +135,7 @@ def indicator_by_resource_agg(
     )
     sorted(data.by_year.keys())
     fig.update_layout(
-        title=f"Emissions by resource ({_years_for_title(year)})",
+        title=f"{indicator_label} by resource ({_years_for_title(year)})",
         title_font_size=24,
         updatemenus=[x_log_switch()],
     )
