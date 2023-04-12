@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 from typing import Callable
 
@@ -39,6 +40,16 @@ def _years_for_title(year: int | None) -> str:
         return "all years"
     else:
         return str(year)
+
+
+def indicator_regex_extractor(indicator: str) -> str:
+    pattern = r"\((\w+)/kg\)"
+    match = re.search(pattern, indicator)
+
+    if match:
+        return match.group(1)
+    else:
+        return indicator
 
 
 def indicator_by_resource_over_years(
@@ -91,7 +102,6 @@ def indicator_by_tech_agg(
         emissions,
         x=emissions.columns,
         y=emissions.index,
-        labels={"value": indicator},
         color_discrete_sequence=px.colors.qualitative.Alphabet,
     )
     sorted(data.by_year.keys())
@@ -99,6 +109,7 @@ def indicator_by_tech_agg(
         title=f"{indicator_label} by technology ({_years_for_title(year)})",
         title_font_size=24,
         updatemenus=[x_log_switch()],
+        xaxis_title=indicator_regex_extractor(indicator),
         yaxis={"categoryorder": "total ascending"},
     )
     return fig
@@ -137,6 +148,7 @@ def indicator_by_resource_agg(
     fig.update_layout(
         title=f"{indicator_label} by resource ({_years_for_title(year)})",
         title_font_size=24,
+        xaxis_title=indicator_regex_extractor(indicator),
         updatemenus=[x_log_switch()],
     )
     return fig
