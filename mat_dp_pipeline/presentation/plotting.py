@@ -68,7 +68,7 @@ def indicator_by_resource_over_years(
     )
     fig = px.area(
         emissions,
-        labels={"value": indicator},
+        labels={"value": indicator_regex_extractor(indicator)},
         color_discrete_sequence=px.colors.qualitative.Alphabet,
     )
     fig.update_traces(hovertemplate="%{x}: %{y}")
@@ -192,7 +192,7 @@ def required_resources_by_tech_agg(
         labels={"value": WEIGHT_UNIT},
     )
     fig.update_layout(
-        title=f"Materials production by technology ({_years_for_title(year)})",
+        title=f"Materials demand by technology ({_years_for_title(year)})",
         title_font_size=24,
         updatemenus=[x_log_switch()],
         yaxis={"categoryorder": "total ascending"},
@@ -216,7 +216,7 @@ def required_resources_agg(data: PipelineOutput, path: Path, year: int | None):
         labels={"x": WEIGHT_UNIT},
     )
     fig.update_layout(
-        title=f"Materials production ({_years_for_title(year)})",
+        title=f"Materials demand ({_years_for_title(year)})",
         title_font_size=24,
         updatemenus=[x_log_switch()],
         yaxis={"categoryorder": "total ascending"},

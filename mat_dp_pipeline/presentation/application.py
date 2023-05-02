@@ -3,7 +3,7 @@ from pathlib import Path
 
 import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
-from dash import Dash, dcc, html
+from dash import Dash, dcc, get_asset_url, html
 from dash.dependencies import Input, Output
 from dash.exceptions import PreventUpdate
 
@@ -79,7 +79,10 @@ class App:
         tail_labels_override: list[str] | None = None,
         indicator_label: str = "Emissions",
     ):
-        self.dash_app = Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
+        self.dash_app = Dash(
+            external_stylesheets=[dbc.themes.BOOTSTRAP],
+            assets_folder=str(Path(f"{__file__}").parent / "assets"),
+        )
         self.outputs = outputs
         self.indicators = sorted(self.outputs.indicators)
         self.paths = sorted(self.outputs.by_path.keys())
@@ -166,13 +169,24 @@ class App:
 
         sidebar = html.Div(
             [
-                html.H2("Menu", className="display-4"),
+                # html.H2("Menu", className="display-4"),
+                html.Img(src=get_asset_url("MatDP.png"), width=128),
                 html.Hr(),
                 html.P("Choose appropriate options", className="lead"),
                 html.Hr(),
                 html.Div([html.Label(self.main_label), self._main_dropdown()]),
                 *leaf_dropdowns,
                 html.Div([html.Label("Year"), year_dropdown]),
+                html.Center(
+                    html.Div(
+                        [
+                            html.Img(
+                                src=get_asset_url("cambridge_logo.png"), width=128
+                            ),
+                            html.Img(src=get_asset_url("Refficiency.png"), width=128),
+                        ]
+                    )
+                ),
             ],
             style=SIDEBAR_STYLE,
         )
@@ -184,7 +198,7 @@ class App:
         content = html.Div(
             [
                 dcc.Store(id="store"),
-                html.H1("MAT-DP Pipeline Results"),
+                html.H1("Mat-dp results"),
                 html.Hr(),
                 dbc.Tabs(tabs, id="tabs", active_tab="materials"),
                 html.Div(id="tab-content", className="p-4"),
