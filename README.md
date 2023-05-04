@@ -111,7 +111,7 @@ Then for each subcommand e.g.
 
 As a starting point, you can run a command like the following to both create an SDF and the web visualisation:
 
-'poetry run app iam Material_intensities_database.xlsx file_with_scenarios.xls'
+`poetry run app iam Material_intensities_database.xlsx file_with_scenarios.xls`
 
 # Standard Data Format (SDF)
 
