@@ -1,6 +1,6 @@
-# Mat DP Pipeline
+# Mat-dp pipeline
 
-The idea of mat-dp-pipeline is that it provides a multitude of input interfaces, that each convert to the same structure, otherwise known as the Standard Data Format (SDF). The SDF is then processed by the pipeline to produce graphs that show the use of materials or production of "indicator" (a quantity representating a measured output, like emissions or employment).
+Mat-dp-pipeline provides a multitude of input interfaces (which may include a material intensities database and projections of changing energy or transport systems) that convert to a standardised structure, which is called the "Standard Data Format" (SDF). The SDF is then processed in a pipeline to produce a web-based visualisation that shows the material demand based on the system projections and additional material implications such as emissions or employment (provided as quantities representing a measured output in the Mat-dp-pipeline data inputs).
 
 # Installation
 
@@ -46,7 +46,7 @@ The real differences in how mat dp pipeline can be used are all in SDF creation.
 
 Note that in the below I use a mix of excel files with a sheet_name, and csv directly - either syntax is acceptable for all data sources. You can also simply enter a dataframe into the init.
 
-### TMBA
+### TMBA: An [OSeMOSYS](http://www.osemosys.org/)-type of results file, particularly those that look like the [TEMBA](https://zenodo.org/record/4889373) results (e.g., TEMBA_1.5.csv).
 
 ```py
 import mat_dp_pipeline.data_sources as ds
@@ -70,7 +70,7 @@ output = pipeline(sdf)
 App(output).serve()
 
 ```
-### IAM
+### IAM: Integrated Assessment Models (which is currently set up to work for TIAM-UCL kind of results).
 
 ```py
 import mat_dp_pipeline.data_sources as ds
