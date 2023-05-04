@@ -143,3 +143,15 @@ The SDF is a generalised format that other more specific formats can be converte
 You can also specify year-based files in the SDF. If these are specified, a linear interpolation is performed between the files, to allow changing intensities and indicators through the years. In the targets file you must already specify the years, so this condition does not apply.
 
 The yearly files must also not specify technologies which aren't already present in the base file. Also there must always be a base file at the level where there are years.
+
+# Contributing to Mat-dp-pipeline
+
+
+Contributions are welcome! 
+
+If you see something that needs to be improved, open an issue in the [respective section of the repository](https://github.com/Mat-dp/mat-dp-pipeline/issues).
+If you have questions, need assistance or need better instructions for contributing, please 
+[get in touch via e-mail](mailto:refficiency-enquiries@eng.cam.ac.uk) mentioning "Mat-dp-pipeline" in the subject.
+
+
+We recommend that developers of mat-dp-pipeline make changes using poetry. Please work in a branch and make sure your contributions work before starting a pull request.
