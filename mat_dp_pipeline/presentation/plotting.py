@@ -61,11 +61,10 @@ def indicator_by_resource_over_years(
         .sum()
         .rename_axis("Resource", axis=1)
     )
-    # Drop resources with only 0s and sorr columns, so that the resources
-    # generating the most emissions are first.
-    emissions = emissions.loc[:, (emissions != 0).any(axis=0)].sort_index(
-        axis=1, ascending=False, key=lambda c: emissions[c].max()
-    )
+    # Drop resources with only 0s and sort columns, so that the resources
+    # are in alphabetical order.
+    emissions = emissions.loc[:, (emissions != 0).any(axis=0)]
+    emissions = emissions.reindex(sorted(emissions.columns), axis=1)
     fig = px.area(
         emissions,
         labels={"value": indicator_regex_extractor(indicator)},
@@ -98,6 +97,8 @@ def indicator_by_tech_agg(
     emissions = emissions.drop(columns=["Category", "Specific"]).groupby("Tech").sum()
     if year is None:
         emissions.pop("Year")
+    # Drop all where resources are zero
+    emissions = emissions.loc[:, (emissions != 0).any(axis=0)]
     fig = px.bar(
         emissions,
         x=emissions.columns,
