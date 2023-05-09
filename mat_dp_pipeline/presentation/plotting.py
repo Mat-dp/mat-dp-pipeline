@@ -136,12 +136,12 @@ def indicator_by_resource_agg(
         .to_frame(indicator)
         .reset_index()
     )
-
+    emission_series = emissions.set_index("Resource")[indicator].sort_index()
     fig = px.bar(
-        emissions,
-        x=indicator,
-        y="Resource",
-        color="Resource",
+        emission_series,
+        x=emission_series,
+        y=emission_series.index,
+        color=emission_series.index,
         color_discrete_sequence=px.colors.qualitative.Alphabet,
     )
     sorted(data.by_year.keys())
@@ -150,6 +150,7 @@ def indicator_by_resource_agg(
         title_font_size=24,
         xaxis_title=indicator_regex_extractor(indicator),
         updatemenus=[x_log_switch()],
+        yaxis={"categoryorder": "total ascending"},
     )
     return fig
 
@@ -159,7 +160,11 @@ def required_resources_over_years(data: PipelineOutput, path: Path) -> go.Figure
         data.resources(path).groupby("Year").sum().reset_index().set_index("Year")
     )
     materials = materials.loc[:, (materials != 0).any(axis=0)]
-    fig = px.area(materials, labels={"value": WEIGHT_UNIT})
+    fig = px.area(
+        materials,
+        labels={"value": WEIGHT_UNIT},
+        color_discrete_sequence=px.colors.qualitative.Alphabet,
+    )
     fig.update_traces(hovertemplate="%{x}: %{y}")
     fig.update_layout(title="Required resources", title_font_size=24)
     return fig
@@ -213,6 +218,7 @@ def required_resources_agg(data: PipelineOutput, path: Path, year: int | None):
         x=materials,
         y=materials.index,
         color=materials.index,
+        color_discrete_sequence=px.colors.qualitative.Alphabet,
         labels={"x": WEIGHT_UNIT},
     )
     fig.update_layout(
