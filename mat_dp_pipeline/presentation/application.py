@@ -1,7 +1,9 @@
+import itertools
 import os.path
 from pathlib import Path
 
 import dash_bootstrap_components as dbc
+import plotly.express as px
 import plotly.graph_objects as go
 from dash import Dash, dcc, get_asset_url, html
 from dash.dependencies import Input, Output
@@ -71,6 +73,7 @@ class App:
     tail_labels: list[str]
     main_label: str
     indicator_label: str
+    materials: list[str]
 
     def __init__(
         self,
@@ -226,27 +229,40 @@ class App:
 
         return [dcc.Graph(figure=fig, style={"height": "25vh"}) for fig in plots]
 
+    def get_color_map(self, path):
+        materials = self.outputs.resources(path).sum()
+        materials = materials[materials > 0]
+        scheme_iter = itertools.cycle(px.colors.qualitative.Alphabet)
+        return {mat: next(scheme_iter) for mat in materials.index}
+
     def generate_materials_graphs(
         self, path: Path, year: int | None
     ) -> list[go.Figure]:
+        color_map = self.get_color_map(path)
         return [
-            required_resources_over_years(self.outputs, path),
-            required_resources_by_tech_agg(self.outputs, path, year),
-            required_resources_agg(self.outputs, path, year),
+            required_resources_over_years(self.outputs, path, color_map),
+            required_resources_by_tech_agg(self.outputs, path, year, color_map),
+            required_resources_agg(self.outputs, path, year, color_map),
         ]
 
     def generate_indicator_graphs(
         self, path: Path, indicator: str, year: int | None
     ) -> list[go.Figure]:
+        color_map = self.get_color_map(path)
         return [
             indicator_by_resource_over_years(
-                self.outputs, path, indicator, self.indicator_label
+                self.outputs, path, indicator, color_map, self.indicator_label
             ),
             indicator_by_tech_agg(
-                self.outputs, path, indicator, year, self.indicator_label
+                self.outputs, path, indicator, year, color_map, self.indicator_label
             ),
             indicator_by_resource_agg(
-                self.outputs, path, indicator, year, self.indicator_label
+                self.outputs,
+                path,
+                indicator,
+                year,
+                color_map,
+                self.indicator_label,
             ),
         ]
 

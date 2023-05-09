@@ -53,7 +53,11 @@ def indicator_regex_extractor(indicator: str) -> str:
 
 
 def indicator_by_resource_over_years(
-    data: PipelineOutput, path: Path, indicator: str, indicator_label="Emissions"
+    data: PipelineOutput,
+    path: Path,
+    indicator: str,
+    color_map: dict[str, str],
+    indicator_label="Emissions",
 ) -> go.Figure:
     emissions = (
         data.emissions(path, indicator)
@@ -68,7 +72,7 @@ def indicator_by_resource_over_years(
     fig = px.area(
         emissions,
         labels={"value": indicator_regex_extractor(indicator)},
-        color_discrete_sequence=px.colors.qualitative.Alphabet,
+        color_discrete_sequence=[color_map[m] for m in emissions.columns],
     )
     fig.update_traces(hovertemplate="%{x}: %{y}")
     fig.update_layout(
@@ -83,6 +87,7 @@ def indicator_by_tech_agg(
     path: Path,
     indicator: str,
     year: int | None,
+    color_map: dict[str, str],
     indicator_label: str = "Emissions",
 ) -> go.Figure:
     if year is None:
@@ -97,13 +102,14 @@ def indicator_by_tech_agg(
     emissions = emissions.drop(columns=["Category", "Specific"]).groupby("Tech").sum()
     if year is None:
         emissions.pop("Year")
-    # Drop all where resources are zero
+    # Drop all where resources and processes are zero
     emissions = emissions.loc[:, (emissions != 0).any(axis=0)]
+    emissions = emissions.loc[~(emissions == 0).all(axis=1)]
     fig = px.bar(
         emissions,
         x=emissions.columns,
         y=emissions.index,
-        color_discrete_sequence=px.colors.qualitative.Alphabet,
+        color_discrete_sequence=[color_map[mat] for mat in emissions.columns],
     )
     sorted(data.by_year.keys())
     fig.update_layout(
@@ -121,6 +127,7 @@ def indicator_by_resource_agg(
     path: Path,
     indicator: str,
     year: int | None,
+    color_map: dict[str, str],
     indicator_label: str = "Emissions",
 ) -> go.Figure:
     if year is None:
@@ -143,7 +150,7 @@ def indicator_by_resource_agg(
         x=emission_series,
         y=emission_series.index,
         color=emission_series.index,
-        color_discrete_sequence=px.colors.qualitative.Alphabet,
+        color_discrete_sequence=[color_map[mat] for mat in emission_series.index],
     )
     sorted(data.by_year.keys())
     fig.update_layout(
@@ -156,7 +163,9 @@ def indicator_by_resource_agg(
     return fig
 
 
-def required_resources_over_years(data: PipelineOutput, path: Path) -> go.Figure:
+def required_resources_over_years(
+    data: PipelineOutput, path: Path, color_map: dict[str, str]
+) -> go.Figure:
     materials = (
         data.resources(path).groupby("Year").sum().reset_index().set_index("Year")
     )
@@ -164,7 +173,7 @@ def required_resources_over_years(data: PipelineOutput, path: Path) -> go.Figure
     fig = px.area(
         materials,
         labels={"value": WEIGHT_UNIT},
-        color_discrete_sequence=px.colors.qualitative.Alphabet,
+        color_discrete_sequence=[color_map[m] for m in materials.columns],
     )
     fig.update_traces(hovertemplate="%{x}: %{y}")
     fig.update_layout(title="Required resources", title_font_size=24)
@@ -172,7 +181,7 @@ def required_resources_over_years(data: PipelineOutput, path: Path) -> go.Figure
 
 
 def required_resources_by_tech_agg(
-    data: PipelineOutput, path: Path, year: int | None
+    data: PipelineOutput, path: Path, year: int | None, color_map: dict[str, str]
 ) -> go.Figure:
     if year is None:
         materials = data.resources(path).reset_index()
@@ -194,7 +203,7 @@ def required_resources_by_tech_agg(
         materials,
         x=materials.columns,
         y=materials.index,
-        color_discrete_sequence=px.colors.qualitative.Alphabet,
+        color_discrete_sequence=[color_map[m] for m in materials.columns],
         labels={"value": WEIGHT_UNIT},
     )
     fig.update_layout(
@@ -206,7 +215,9 @@ def required_resources_by_tech_agg(
     return fig
 
 
-def required_resources_agg(data: PipelineOutput, path: Path, year: int | None):
+def required_resources_agg(
+    data: PipelineOutput, path: Path, year: int | None, color_map: dict[str, str]
+):
     if year is None:
         materials = data.resources(path).sum()
     else:
@@ -219,7 +230,7 @@ def required_resources_agg(data: PipelineOutput, path: Path, year: int | None):
         x=materials,
         y=materials.index,
         color=materials.index,
-        color_discrete_sequence=px.colors.qualitative.Alphabet,
+        color_discrete_sequence=[color_map[mat] for mat in materials.index],
         labels={"x": WEIGHT_UNIT},
     )
     fig.update_layout(
