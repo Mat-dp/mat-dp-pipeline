@@ -12,6 +12,7 @@ from dash.exceptions import PreventUpdate
 from mat_dp_pipeline.common import Tree, create_path_tree
 from mat_dp_pipeline.pipeline import PipelineOutput
 
+from .graph_colours import GRAPH_COLOURS
 from .plotting import (
     indicator_by_resource_agg,
     indicator_by_resource_over_years,
@@ -172,7 +173,6 @@ class App:
 
         sidebar = html.Div(
             [
-                # html.H2("Menu", className="display-4"),
                 html.Img(src=get_asset_url("MatDP.png"), width=128),
                 html.Hr(),
                 html.P("Choose appropriate options", className="lead"),
@@ -183,10 +183,18 @@ class App:
                 html.Center(
                     html.Div(
                         [
-                            html.Img(
-                                src=get_asset_url("cambridge_logo.png"), width=128
+                            html.Div(
+                                [
+                                    html.Img(
+                                        src=get_asset_url("cambridge_logo.png"),
+                                        width=128,
+                                    ),
+                                    html.Img(
+                                        src=get_asset_url("Refficiency.png"), width=128
+                                    ),
+                                ]
                             ),
-                            html.Img(src=get_asset_url("Refficiency.png"), width=128),
+                            html.Img(src=get_asset_url("CCG_logo.png"), width=128),
                         ]
                     )
                 ),
@@ -232,7 +240,7 @@ class App:
     def get_color_map(self, path):
         materials = self.outputs.resources(path).sum()
         materials = materials[materials > 0]
-        scheme_iter = itertools.cycle(px.colors.qualitative.Alphabet)
+        scheme_iter = itertools.cycle(GRAPH_COLOURS)
         return {mat: next(scheme_iter) for mat in materials.index}
 
     def generate_materials_graphs(
