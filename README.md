@@ -138,11 +138,17 @@ indicators.csv
 
 The SDF is a generalised format that other more specific formats can be converted to. The folders can be arranged in any structure, but are most often grouped by countries, continents and parameters. Each level takes its intensities and indicators hierarchically.
 
+In the cases when data within the SDF needs to be modified to reflect changes in intensities by year or technology, it is advisable to first run the model and use the option to save the SDF output. Then, such output can be modified and then the option to run the pipeline but starting from the SDF folder source can be used. Such option is:
+
+`poetry run app sdf sdf_folder_source`
+
 ## SDF modifications to include yearly intensities 
 
-You can also specify year-based files in the SDF. If these are specified, a linear interpolation is performed between the files, to allow changing intensities and indicators through the years. In the targets file you must already specify the years, so this condition does not apply.
+You can also specify year-based values in the SDF. If these are specified, a linear interpolation is performed between two given years. For example, material intensities for solar PV between 2020 and 2025 can be assumed to change linearly as long as the values for both years are included in the SDF. In the case when the same value wants to be used after 2025, the intensities between 2025 and the final year in the case study must be specified to be the same. 
 
-The yearly files must also not specify technologies which aren't already present in the base file. Also there must always be a base file at the level where there are years.
+In the targets file you must already specify the years, so this condition does not apply.
+
+Please note that the yearly files must only specify technologies which are already present in the base file. Also, there must always be a base file at the level where there are years.
 
 # Contributing to Mat-dp-pipeline
 
