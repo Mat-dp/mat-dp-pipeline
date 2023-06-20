@@ -58,7 +58,6 @@ import mat_dp_pipeline.data_sources as ds
 from mat_dp_pipeline import App, create_sdf, pipeline
 
 TMBA_TARGETS_PARAMETERS = [
-	"Power Generation (Aggregate)",
 	"Power Generation Capacity (Aggregate)",
 ]
 
@@ -75,14 +74,18 @@ output = pipeline(sdf)
 App(output).serve()
 
 ```
-### IAM: Integrated Assessment Models 
-This is currently set up to work for [TIAM-UCL](https://www.ucl.ac.uk/energy-models/models/tiam-ucl) kind of results. If additional IAMs need to be used, please create a branch of the code implementing this and then create a pull request. 
+### IAM: Integrated Assessment Models (IAM)
+
+There are two types of IAM inputs that may be used: 1) files from the TIMES IAM [TIAM-UCL](https://www.ucl.ac.uk/energy-models/models/tiam-ucl) and 2) files that use the IAM community data standards.
+
+#### TIAM_UCL
+This is currently set up to work for TIAM-UCL kind of results. 
 
 ```py
 import mat_dp_pipeline.data_sources as ds
 from mat_dp_pipeline import App, create_sdf, pipeline
 
-IAM_TARGETS_PARAMETERS = ["Primary Energy", "Secondary Energy|Electricity"]
+IAM_TARGETS_PARAMETERS = ["Capacity|Electricity"]
 
 sdf = create_sdf(
 	intensities=ds.MatDPDBIntensitiesSource.from_excel("./materials.xlsx", sheet_name = "Material intensities"),
@@ -96,6 +99,10 @@ output = pipeline(sdf)
 
 App(output).serve()
 ```
+### IAM community standards
+
+The files that may be used for this option can be downloaded from websites such as [IIASA's NGFS scenario explorer](https://data.ece.iiasa.ac.at/ngfs/#/login?redirect=%2Fworkspaces). The type of values that may be included so far are those associated to Capacity Additions for the different types of technologies. The file works very similarly to the TIAM-UCL option.
+
 
 # Command-line interface (CLI) Usage
 
@@ -105,9 +112,14 @@ There is a CLI that exposes some of the behaviour of Mat-dp-pipeline. For detail
 
 Then for each subcommand e.g.
 
+TEMBA data
 `poetry run app tmba --help`
 
+TIAM-UCL data
 `poetry run app iam --help`
+
+IAM community data
+`poetry run app iamc --help`
 
 As a starting point, you can run a command like the following to both create an SDF and the web visualisation:
 
@@ -137,6 +149,10 @@ indicators.csv
 ```
 
 The SDF is a generalised format that other more specific formats can be converted to. The folders can be arranged in any structure, but are most often grouped by countries, continents and parameters. Each level takes its intensities and indicators hierarchically.
+
+If you wish to save the SDF while running a specific model using CLI, you can use the following command (remember to change to the right names of your files):
+
+`poetry run app iam Material_intensities_database.xlsx file_with_scenarios.xls --sdf-output sdf_folder_name`
 
 In the cases when data within the SDF needs to be modified to reflect changes in intensities by year or technology, it is advisable to first run the model and use the option to save the SDF output. Then, such output can be modified and then the option to run the pipeline but starting from the SDF folder source can be used. Such option is:
 
