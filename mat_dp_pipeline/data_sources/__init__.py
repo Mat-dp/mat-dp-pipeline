@@ -1,4 +1,5 @@
 from mat_dp_pipeline.data_sources.iam import IntegratedAssessmentModel
+from mat_dp_pipeline.data_sources.iamc import IntegratedAssessmentModelc
 from mat_dp_pipeline.data_sources.mat_dp_db import (
     MatDPDBIndicatorsSource,
     MatDPDBIntensitiesSource,

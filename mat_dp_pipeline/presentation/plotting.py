@@ -207,7 +207,7 @@ def required_resources_by_tech_agg(
         labels={"value": WEIGHT_UNIT},
     )
     fig.update_layout(
-        title=f"Materials demand by technology ({_years_for_title(year)})",
+        title=f"Material demand by technology ({_years_for_title(year)})",
         title_font_size=24,
         updatemenus=[x_log_switch()],
         yaxis={"categoryorder": "total ascending"},
@@ -234,7 +234,7 @@ def required_resources_agg(
         labels={"x": WEIGHT_UNIT},
     )
     fig.update_layout(
-        title=f"Materials demand ({_years_for_title(year)})",
+        title=f"Material demand ({_years_for_title(year)})",
         title_font_size=24,
         updatemenus=[x_log_switch()],
         yaxis={"categoryorder": "total ascending"},

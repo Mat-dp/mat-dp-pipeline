@@ -15,6 +15,7 @@ class TechMapTypes(Enum):
     TMBA = "tmba_variable"
     IAM = "Variable"
     MATDB = "tech_matdb"
+    IAMc = "Variable"
 
 
 @cache
