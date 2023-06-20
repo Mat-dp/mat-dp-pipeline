@@ -7,7 +7,7 @@ import pandas as pd
 from mat_dp_pipeline.abstract_data_sources import TargetsSource
 from mat_dp_pipeline.data_sources.country_sets import Identifier, SourceWithCountries
 
-from .common import map_technologies
+from .common import map_technologies, match_countries
 from .tech_map import TechMap, TechMapTypes, create_tech_map
 
 
@@ -29,7 +29,7 @@ class IntegratedAssessmentModel(TargetsSource):
         parameters: list[str],
         country_source: type[SourceWithCountries],
     ) -> None:
-        """Targets Data Sources for Integrated Assement Model (TIAM).
+        """Targets Data Sources for TIMES Integrated Assement Model (TIAM).
 
         Args:
             targets (pd.DataFrame): The dataframe for targets.
@@ -69,6 +69,9 @@ class IntegratedAssessmentModel(TargetsSource):
         source = pd.read_excel(
             Path(spreadsheet), sheet_name=sheet_name, **pandas_kwargs
         )
+        print(source.head())
+        source['Region'] = match_countries(source['Region'])
+        print(source.head())
         return cls(source, country_source=country_source, parameters=parameters)
 
     @classmethod

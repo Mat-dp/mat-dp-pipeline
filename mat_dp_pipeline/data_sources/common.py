@@ -1,6 +1,7 @@
 import logging
 
 import pandas as pd
+import country_converter as coco
 
 from .tech_map import TechMap
 
@@ -37,3 +38,18 @@ def map_technologies(
         columns=["Category", "Specific"],
     )
     return targets.join(techs, how="inner")
+
+def match_countries(list_names: list[str]):
+    shorts = coco.convert(names = list_names, to = 'name_short', not_found = None)
+    iso3_codes = coco.convert(names = list_names, to = 'ISO3', not_found = None)
+    
+    tis_d = pd.DataFrame(list(zip(list_names,shorts)), columns = ['Country','aCountry'])
+    tis_d = tis_d.set_index('Country')['aCountry'].to_dict()
+
+    ti3_d = pd.DataFrame(list(zip(shorts,iso3_codes)), columns = ['Region','ISO3'])
+    ti3_d = ti3_d.set_index('Region')['ISO3'].to_dict()
+    
+    list_names_a = list_names.map(tis_d)
+    list_names_ISO3 = list_names_a.map(ti3_d)
+    
+    return list_names_ISO3

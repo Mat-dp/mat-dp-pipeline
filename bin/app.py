@@ -16,6 +16,9 @@ def main():
     iam_parser = subparsers.add_parser(
         "iam", description="IAM target type", help="IAM target type"
     )
+    iamc_parser = subparsers.add_parser(
+        "iamc", description="IAMc target type", help="IAMc target type"
+    )
     tmba_parser = subparsers.add_parser(
         "tmba", description="TMBA target type", help="TMBA target type"
     )
@@ -28,6 +31,10 @@ def main():
     iam_parser.add_argument("targets", type=Path)
     iam_parser.add_argument("--sdf-output", type=Path)
 
+    iamc_parser.add_argument("materials", type=Path)
+    iamc_parser.add_argument("targets", type=Path)
+    iamc_parser.add_argument("--sdf-output", type=Path)
+
     tmba_parser.add_argument("materials", type=Path)
     tmba_parser.add_argument("targets", type=Path)
     tmba_parser.add_argument("--sdf-output", type=Path)
@@ -35,10 +42,14 @@ def main():
     args = parser.parse_args()
 
     TMBA_TARGETS_PARAMETERS = [
-        "Power Generation (Aggregate)",
-        "Power Generation Capacity (Aggregate)",
+        # "Power Generation (Aggregate)",
+        "Power Generation Capacity (Aggregate)"
     ]
-    IAM_TARGETS_PARAMETERS = ["Primary Energy", "Secondary Energy|Electricity"]
+    IAM_TARGETS_PARAMETERS = ["Capacity|Electricity"]
+
+    IAMc_TARGETS_PARAMETERS = [
+        # "Primary Energy",
+        "Capacity Additions|Electricity"]
 
     if args.target_type == "sdf":
         sdf = create_sdf(args.source)
@@ -51,6 +62,10 @@ def main():
             targets = ds.IntegratedAssessmentModel.from_excel(
                 args.targets, IAM_TARGETS_PARAMETERS, ds.MatDPDBIntensitiesSource
             )
+        elif args.target_type == "iamc":
+            targets = ds.IntegratedAssessmentModelc.from_csv(
+                args.targets, IAMc_TARGETS_PARAMETERS, ds.MatDPDBIntensitiesSource
+            )
         else:
             assert False
 
@@ -62,7 +77,7 @@ def main():
 
         if args.sdf_output:
             sdf.save(args.sdf_output)
-
+    
     output = pipeline(sdf)
     App(output).serve()
 
