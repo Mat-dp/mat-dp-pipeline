@@ -100,21 +100,37 @@ class MatDPDBIntensitiesSource(
         return cls(source)
 
     def _raw(self) -> pd.DataFrame:
-        df = self._intensities.drop(
-            columns=[
-                "Total",
-                "Comments",
-                "Data collection responsible",
-                "Data collection date",
-                "Vehicle/infrastructure primary purpose",
-            ]
-        ).rename(
+        if "Data collection responsible" in self._intensities:
+            df = self._intensities.drop(
+                columns=[
+                    "Total",
+                    "Comments",
+                    "Data collection responsible",
+                    "Data collection date",
+                    "Updated data collection responsible",
+                    "Updated on",
+                    "Technology primary purpose",
+                ]).rename(
             columns={
                 "Technology category": "Category",
                 "Technology name": "Specific",
                 "Technology description": "Description",
-            }
-        )
+            })
+            
+        else:
+            df = self._intensities.drop(
+                columns=[
+                    "Total",
+                    "Comments",
+                    "Data collection date",
+                    "Updated on",
+                    "Technology primary purpose",
+                ]).rename(
+            columns={
+                "Technology category": "Category",
+                "Technology name": "Specific",
+                "Technology description": "Description",
+            })
         units = df["Units"].str.split("/", n=1, expand=True)
         df.pop("Units")
         df.insert(3, "Production Unit", units.iloc[:, 1])
