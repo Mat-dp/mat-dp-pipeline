@@ -22,6 +22,12 @@ def main():
     tmba_parser = subparsers.add_parser(
         "tmba", description="TMBA target type", help="TMBA target type"
     )
+    transport_parser = subparsers.add_parser(
+        "transport", description="Transport target type", help="Transport target type"
+    )
+    team_parser = subparsers.add_parser(
+        "team", description="TEAM target type", help="TEAM target type"
+    )
     sdf_parser = subparsers.add_parser(
         "sdf", description="SDF target type", help="SDF target type"
     )
@@ -39,6 +45,14 @@ def main():
     tmba_parser.add_argument("targets", type=Path)
     tmba_parser.add_argument("--sdf-output", type=Path)
 
+    transport_parser.add_argument("materials", type=Path)
+    transport_parser.add_argument("targets", type=Path)
+    transport_parser.add_argument("--sdf-output", type=Path)
+
+    team_parser.add_argument("materials", type=Path)
+    team_parser.add_argument("targets", type=Path)
+    team_parser.add_argument("--sdf-output", type=Path)
+
     args = parser.parse_args()
 
     TMBA_TARGETS_PARAMETERS = [
@@ -49,7 +63,14 @@ def main():
 
     IAMc_TARGETS_PARAMETERS = [
         # "Primary Energy",
-        "Capacity Additions|Electricity"]
+        "Capacity Additions|Electricity",
+        "Transportation"]
+    
+    TRANSPT_TARGETS_PARAMETERS = [
+        "Transportation"]
+    
+    TRANSPT_TARGETS_PARAMETERS = [
+        "Transportation"]
 
     if args.target_type == "sdf":
         sdf = create_sdf(args.source)
@@ -66,6 +87,14 @@ def main():
             targets = ds.IntegratedAssessmentModelc.from_csv(
                 args.targets, IAMc_TARGETS_PARAMETERS, ds.MatDPDBIntensitiesSource
             )
+        elif args.target_type == "transport":
+            targets = ds.TransportModel.from_csv(
+                args.targets, TRANSPT_TARGETS_PARAMETERS, ds.MatDPDBIntensitiesSource
+            )
+        elif args.target_type == "team":
+            targets = ds.TransportModel.from_csv(
+                args.targets, TRANSPT_TARGETS_PARAMETERS, ds.MatDPDBIntensitiesSource
+            )
         else:
             assert False
 
@@ -74,6 +103,7 @@ def main():
             indicators=ds.MatDPDBIndicatorsSource.from_excel(args.materials),
             targets=targets,
         )
+        #import pdb; pdb.set_trace()
 
         if args.sdf_output:
             sdf.save(args.sdf_output)

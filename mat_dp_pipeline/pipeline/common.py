@@ -54,7 +54,7 @@ class SparseYearsInput:
         validate_tech_units(self.tech_metadata)
         intensities_techs = self.intensities.index.droplevel(0).unique()
         targets_techs = self.targets.index
-
+        # import pdb; pdb.set_trace()
         if not set(targets_techs) <= set(intensities_techs):
             raise ValueError("Target's techs must be a subset of intensities' techs!")
 

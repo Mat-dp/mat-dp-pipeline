@@ -36,6 +36,7 @@ class PipelineOutput:
         tech_metadata: pd.DataFrame,
         metadata: SDFMetadata,
     ):
+        
         self._by_year = defaultdict(dict)
         self._by_path = defaultdict(dict)
         self._tech_metadata = tech_metadata
@@ -167,5 +168,5 @@ def pipeline(sdf: StandardDataFormat) -> PipelineOutput:
             .groupby(level=(0, 1))
             .last()
         )
-
+    #import pdb; pdb.set_trace()
     return PipelineOutput(processed, tech_metadata=tech_metadata, metadata=sdf.metadata)

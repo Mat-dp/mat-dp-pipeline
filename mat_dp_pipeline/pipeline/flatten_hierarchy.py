@@ -76,7 +76,6 @@ def flatten_hierarchy(
             raise ValueError(
                 f"{label}: Indicators' names on each level have to be the same!"
             )
-
         overlaid = sparse_years.copy()
         overlaid.intensities = overlay_in_order(
             overlaid.intensities, sdf.base_intensities, sdf.intensities_yearly
@@ -94,6 +93,7 @@ def flatten_hierarchy(
             )
 
         # Go down in the hierarchy
+        #import pdb; pdb.set_trace()
         for name, directory in sdf.children.items():
             yield from dfs(directory, overlaid, label / name)
 
@@ -104,10 +104,12 @@ def flatten_hierarchy(
             overlaid.tech_metadata = overlaid.tech_metadata.reindex(
                 overlaid.targets.index
             )
-
+            
+            #import pdb; pdb.set_trace()
             mismatched_resources = overlaid.validate()
             yield label, overlaid, mismatched_resources
 
+    #import pdb; pdb.set_trace()
     initial = SparseYearsInput(
         intensities=pd.DataFrame(),
         targets=pd.DataFrame(),
@@ -120,6 +122,7 @@ def flatten_hierarchy(
     for label, sparse_years, mismatched_resources in dfs(
         root_sdf, initial, Path(root_sdf.name)
     ):
+        #import pdb; pdb.set_trace()
         flattened.append((label, sparse_years))
         if mismatched_resources:
             all_mismatched_resources[tuple(sorted(mismatched_resources))].append(label)

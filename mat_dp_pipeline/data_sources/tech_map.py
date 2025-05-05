@@ -16,6 +16,8 @@ class TechMapTypes(Enum):
     IAM = "Variable"
     MATDB = "tech_matdb"
     IAMc = "Variable"
+    TRANSPT = "tech_grl"
+    TEAM = "TEAM_variable"
 
 
 @cache
@@ -38,10 +40,11 @@ def create_tech_map(
     df = tech_map_frame()
     from_col = from_type.value
     from_series = df[from_type.value]
-    return (
+    _df = (
         df[~from_series.isna()]
         .set_index(from_col)[["Category", to_type.value]]
         .dropna()
         .apply(tuple, axis=1)
         .to_dict()
     )
+    return _df

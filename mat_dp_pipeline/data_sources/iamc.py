@@ -19,6 +19,8 @@ class IntegratedAssessmentModelc(TargetsSource):
     tail_labels: ClassVar[list[str]] = ["Model", "Scenario", "Parameter"]
     conversion_table: dict[str, float] = {
         "GW/yr": 1000,  # MW/year
+        # adding this so transport works
+        "vehicle": 1,
     }
 
     def __init__(
@@ -27,7 +29,7 @@ class IntegratedAssessmentModelc(TargetsSource):
         parameters: list[str],
         country_source: type[SourceWithCountries],
     ) -> None:
-        """Targets Data Sources for Integrated Assessment Model (IAM).
+        """Targets Data Sources for Integrated Assessment Model (IAM) from the IAM community.
 
         Args:
             targets (pd.DataFrame): The dataframe for targets.
